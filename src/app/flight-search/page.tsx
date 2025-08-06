@@ -2,7 +2,6 @@
 
 import { useState, useRef } from 'react';
 import Link from 'next/link';
-import { generateExpediaFlightUrl } from '@/lib/expedia-affiliate';
 
 // Types for search results
 interface Airport {
@@ -313,7 +312,7 @@ export default function FlightSearch() {
     };
   };
 
-  const generateUrl = () => {
+  const generateUrl = async () => {
     if (!formData.departureLocation || !formData.arrivalLocation || !formData.departureDate) {
       alert('Please fill in departure location, arrival location, and departure date.');
       return;
@@ -365,9 +364,31 @@ export default function FlightSearch() {
       cabinClass: formData.cabinClass
     };
 
-    const url = generateExpediaFlightUrl(params);
-    
-    window.open(url, '_blank', 'noopener,noreferrer');
+    try {
+      // Call the API to generate the URL with affiliate config on the server-side
+      const response = await fetch('/api/flights/generate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(params),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to generate flight URL');
+      }
+
+      const data = await response.json();
+      
+      if (data.url) {
+        window.open(data.url, '_blank', 'noopener,noreferrer');
+      } else {
+        throw new Error('No URL returned from API');
+      }
+    } catch (error) {
+      console.error('Error generating flight URL:', error);
+      alert('Sorry, there was an error generating the flight search. Please try again.');
+    }
   };
 
   return (

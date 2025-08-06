@@ -29,9 +29,6 @@ export interface AffiliateConfig {
  * Gets affiliate configuration from environment variables
  */
 export function getAffiliateConfig(): AffiliateConfig {
-  console.log('Debug - EXPEDIA_AFFCID:', process.env.EXPEDIA_AFFCID);
-  console.log('Debug - EXPEDIA_MY_AD:', process.env.EXPEDIA_MY_AD);
-  
   if (!process.env.EXPEDIA_AFFCID || !process.env.EXPEDIA_MY_AD) {
     throw new Error('Expedia affiliate configuration is required. Please set EXPEDIA_AFFCID and EXPEDIA_MY_AD environment variables.');
   }
@@ -130,7 +127,7 @@ function _generateLocationCode(airport: string, city: string, code: string): str
 /**
  * Generates complete Expedia affiliate flight search URL
  */
-export function generateExpediaFlightUrl(params: FlightSearchParams): string {
+export function generateExpediaFlightUrl(params: FlightSearchParams, affiliateConfig?: AffiliateConfig): string {
   const baseUrl = 'https://www.expedia.com.au/Flights-Search';
   
   // Format dates for different formats needed
@@ -177,8 +174,8 @@ export function generateExpediaFlightUrl(params: FlightSearchParams): string {
   const infantInLapStr = params.infantInLap ? 'Y' : 'N';
   passengerString += `,infantinlap:${infantInLapStr}`;
   
-  // Get affiliate configuration from environment variables
-  const affiliateConfig = getAffiliateConfig();
+  // Get affiliate configuration - either from parameter or environment variables
+  const config = affiliateConfig || getAffiliateConfig();
   
   // Build leg1 parameter
   const leg1 = `from:${encodeURIComponent(originLocation)},to:${encodeURIComponent(destinationLocation)},departure:${departureDateFormatted}TANYT,fromType:AIRPORT,toType:AIRPORT`;
@@ -198,8 +195,8 @@ export function generateExpediaFlightUrl(params: FlightSearchParams): string {
     'options': `cabinclass:${cabinType}`,
     'fromDate': departureDateFormatted,
     'passengers': passengerString,
-    'affcid': affiliateConfig.affcid,
-    'my_ad': affiliateConfig.my_ad
+    'affcid': config.affcid,
+    'my_ad': config.my_ad
   });
   
   // Add leg2 for roundtrip
