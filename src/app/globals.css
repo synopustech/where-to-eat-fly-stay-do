@@ -351,6 +351,166 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
   opacity: 1;
 }
 
+/* Disabled date input styling */
+input[type="date"]:disabled {
+  background-color: var(--bs-gray-100);
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+input[type="date"]:disabled::-webkit-calendar-picker-indicator {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+/* Date input validation styling */
+input[type="date"]:invalid {
+  border-color: var(--bs-danger);
+  box-shadow: 0 0 0 0.25rem rgba(229, 62, 62, 0.25);
+}
+
+input[type="date"]:valid {
+  border-color: var(--bs-success);
+}
+
+/* Modern date input focus styling */
+input[type="date"]:focus {
+  border-color: var(--bs-primary);
+  box-shadow: 0 0 0 0.25rem rgba(229, 62, 62, 0.25);
+}
+
+/* Modern Date Range Picker Styles */
+.date-picker-input {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 38px;
+  transition: all 0.2s ease;
+  background: var(--bs-light);
+  color: var(--bs-dark);
+}
+
+.date-picker-input:hover {
+  border-color: var(--bs-primary);
+  box-shadow: 0 0 0 0.1rem rgba(229, 62, 62, 0.15);
+}
+
+.date-picker-input.active {
+  border-color: var(--bs-primary);
+  box-shadow: 0 0 0 0.25rem rgba(229, 62, 62, 0.25);
+}
+
+.date-picker-input.disabled {
+  background-color: var(--bs-gray-200);
+  color: var(--bs-gray-500);
+  opacity: 0.65;
+}
+
+.date-picker-dropdown {
+  background: var(--light-cream) !important;
+  border: 2px solid var(--harvest-gold) !important;
+  animation: slideDown 0.3s ease;
+  max-height: 500px;
+  overflow: visible;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+.calendar-month {
+  width: 300px;
+}
+
+.calendar-grid .date-cell {
+  height: 40px;
+  font-size: 0.875rem;
+  transition: all 0.2s ease;
+  background: var(--light-cream);
+  color: var(--jet-black);
+  border: 1px solid transparent;
+}
+
+.date-cell.available:hover {
+  background-color: var(--bs-primary) !important;
+  color: white !important;
+  transform: scale(1.05);
+  border-color: var(--bs-primary);
+}
+
+.date-cell.selected {
+  background-color: var(--bs-primary) !important;
+  color: white !important;
+  font-weight: 600;
+  border-color: var(--bs-primary);
+}
+
+.date-cell.in-range {
+  background-color: rgba(229, 62, 62, 0.1) !important;
+  color: var(--bs-primary) !important;
+  border-color: rgba(229, 62, 62, 0.3);
+}
+
+.date-cell.hovered {
+  background-color: rgba(229, 62, 62, 0.15) !important;
+  color: var(--bs-primary) !important;
+  border-color: rgba(229, 62, 62, 0.4);
+}
+
+.date-cell.disabled {
+  color: var(--bs-gray-400) !important;
+  cursor: not-allowed;
+  opacity: 0.4;
+  background: var(--bs-gray-100) !important;
+}
+
+.date-cell.disabled:hover {
+  background: var(--bs-gray-100) !important;
+  transform: none;
+  border-color: transparent;
+}
+
+.date-cell-empty {
+  height: 40px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .date-picker-dropdown {
+    left: 0 !important;
+    transform: none !important;
+    width: 100% !important;
+    max-width: none !important;
+    min-width: auto !important;
+  }
+  
+  .calendar-month {
+    width: 100%;
+  }
+  
+  .date-picker-dropdown .d-flex.gap-4 {
+    flex-direction: column !important;
+    gap: 1rem !important;
+  }
+  
+  .date-picker-dropdown[style*="680px"] {
+    min-width: 350px !important;
+  }
+}
+
+@media (max-width: 1024px) {
+  .date-picker-dropdown[style*="680px"] {
+    min-width: 600px !important;
+  }
+}
+
 /* Select Dropdown Styling - Custom arrow */
 .form-select {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%23495057' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E") !important;

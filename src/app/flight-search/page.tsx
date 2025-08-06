@@ -2,6 +2,7 @@
 
 import { useState, useRef } from 'react';
 import Link from 'next/link';
+import DateRangePicker from '@/components/DateRangePicker';
 
 // Types for search results
 interface Airport {
@@ -323,6 +324,27 @@ export default function FlightSearch() {
       return;
     }
 
+    // Validate dates
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const departureDate = new Date(formData.departureDate);
+    departureDate.setHours(0, 0, 0, 0);
+
+    if (departureDate < today) {
+      alert('Departure date cannot be in the past.');
+      return;
+    }
+
+    if (formData.tripType === 'roundtrip' && formData.returnDate) {
+      const returnDate = new Date(formData.returnDate);
+      returnDate.setHours(0, 0, 0, 0);
+      
+      if (returnDate <= departureDate) {
+        alert('Return date must be after the departure date.');
+        return;
+      }
+    }
+
     const totalPassengers = formData.adults + formData.children + formData.infants;
     if (totalPassengers > 6) {
       alert('Total passengers cannot exceed 6. Please reduce the number of passengers.');
@@ -638,42 +660,15 @@ export default function FlightSearch() {
 
               {/* Row 4: Dates */}
               <div className="row g-3 mb-4">
-                <div className="col-md-6">
-                  <label htmlFor="departureDate" className="form-label">
-                    <i className="bi bi-calendar-event me-2"></i>
-                    Departure Date
-                    <span className="text-danger ms-1">*</span>
-                  </label>
-                  <input
-                    type="date"
-                    id="departureDate"
-                    name="departureDate"
-                    value={formData.departureDate}
-                    onChange={handleInputChange}
-                    className="form-control"
-                    required
-                    suppressHydrationWarning
+                <div className="col-12">
+                  <DateRangePicker
+                    startDate={formData.departureDate}
+                    endDate={formData.returnDate}
+                    tripType={formData.tripType}
+                    onStartDateChange={(date) => setFormData(prev => ({ ...prev, departureDate: date }))}
+                    onEndDateChange={(date) => setFormData(prev => ({ ...prev, returnDate: date }))}
                   />
                 </div>
-                {formData.tripType === 'roundtrip' && (
-                  <div className="col-md-6">
-                    <label htmlFor="returnDate" className="form-label">
-                      <i className="bi bi-calendar-check me-2"></i>
-                      Return Date
-                      <span className="text-danger ms-1">*</span>
-                    </label>
-                    <input
-                      type="date"
-                      id="returnDate"
-                      name="returnDate"
-                      value={formData.returnDate}
-                      onChange={handleInputChange}
-                      className="form-control"
-                      required
-                      suppressHydrationWarning
-                    />
-                  </div>
-                )}
               </div>
 
               {/* Selection Type Info */}
