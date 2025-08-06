@@ -1,0 +1,1037 @@
+/* Restaurant Finder App - Bootstrap Custom Styles with Pantone Color Palette */
+
+/* Custom Bootstrap Color Variables - Updated with Pantone Colors */
+:root {
+  /* Pantone Color Palette - Light Mode */
+  --harvest-gold: #F5C842;        /* Pantone 1235 C - Primary background */
+  --flame-scarlet: #E53E3E;       /* Pantone 18-1662 TCX - CTA/buttons */
+  --charcoal-gray: #2D3748;       /* Pantone 432 C - Header/navigation */
+  --fresh-green: #38A169;         /* Pantone 7737 C - Accent 1 */
+  --light-cream: #F7FAFC;         /* Pantone 7499 C - Accent 2 */
+  --jet-black: #1A202C;           /* Pantone Black 6 C - Text */
+
+  /* Bootstrap Integration */
+  --bs-primary: #E53E3E;
+  --bs-primary-rgb: 229, 62, 62;
+  --bs-secondary: #38A169;
+  --bs-secondary-rgb: 56, 161, 105;
+  --bs-success: #38A169;
+  --bs-info: #F5C842;
+  --bs-info-rgb: 245, 200, 66;
+  --bs-warning: #F5C842;
+  --bs-danger: #E53E3E;
+  --bs-light: #F7FAFC;
+  --bs-dark: #2D3748;
+  
+  /* Text colors */
+  --bs-body-color: #1A202C;
+  --bs-body-bg: #F7FAFC;
+}
+
+/* Dark Mode Variables */
+@media (prefers-color-scheme: dark) {
+  :root {
+    /* Dark Mode Pantone Color Adjustments */
+    --harvest-gold: #F6D55C;        /* Brighter gold for dark backgrounds */
+    --flame-scarlet: #FC8181;       /* Softer red for dark mode */
+    --charcoal-gray: #4A5568;       /* Lighter gray for readability */
+    --fresh-green: #68D391;         /* Brighter green for contrast */
+    --light-cream: #1A202C;         /* Dark background */
+    --jet-black: #F7FAFC;           /* Light text */
+
+    /* Bootstrap Dark Mode Integration */
+    --bs-primary: #FC8181;
+    --bs-primary-rgb: 252, 129, 129;
+    --bs-secondary: #68D391;
+    --bs-secondary-rgb: 104, 211, 145;
+    --bs-success: #68D391;
+    --bs-info: #F6D55C;
+    --bs-info-rgb: 246, 213, 92;
+    --bs-warning: #F6D55C;
+    --bs-danger: #FC8181;
+    --bs-light: #2D3748;
+    --bs-dark: #F7FAFC;
+    
+    /* Dark Mode Text and Background */
+    --bs-body-color: #F7FAFC;
+    --bs-body-bg: #1A202C;
+  }
+}
+
+/* Custom Appetizing Color Classes - Updated with Pantone */
+.bg-harvest-gold {
+  background: linear-gradient(135deg, var(--harvest-gold) 0%, #F6D55C 100%) !important;
+}
+
+.bg-flame-scarlet {
+  background: linear-gradient(135deg, var(--flame-scarlet) 0%, #FC8181 100%) !important;
+}
+
+.bg-fresh-green {
+  background: linear-gradient(135deg, var(--fresh-green) 0%, #68D391 100%) !important;
+}
+
+.bg-appetizing-gradient {
+  background: linear-gradient(135deg, var(--harvest-gold) 0%, var(--fresh-green) 50%, var(--flame-scarlet) 100%) !important;
+}
+
+/* Dark Mode Gradient Adjustments */
+@media (prefers-color-scheme: dark) {
+  .bg-appetizing-gradient {
+    background: linear-gradient(135deg, #F6D55C 0%, #68D391 50%, #FC8181 100%) !important;
+  }
+}
+
+.text-harvest-gold {
+  color: var(--harvest-gold) !important;
+}
+
+.text-flame-scarlet {
+  color: var(--flame-scarlet) !important;
+}
+
+.text-fresh-green {
+  color: var(--fresh-green) !important;
+}
+
+.text-charcoal-gray {
+  color: var(--charcoal-gray) !important;
+}
+
+.text-jet-black {
+  color: var(--jet-black) !important;
+}
+
+.bg-light-cream {
+  background-color: var(--light-cream) !important;
+}
+
+/* Dark Mode Background Class Override */
+@media (prefers-color-scheme: dark) {
+  .bg-light-cream {
+    background-color: #1A202C !important; /* Dark background */
+  }
+  
+  /* Fix any elements with light cream backgrounds */
+  .bg-light-cream * {
+    color: #F7FAFC !important;
+  }
+}
+
+/* Custom Button Styles - Updated with Pantone Colors */
+.btn-flame-scarlet {
+  background: linear-gradient(135deg, var(--flame-scarlet) 0%, #FC8181 100%);
+  border: none;
+  color: white;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(229, 62, 62, 0.3);
+}
+
+.btn-flame-scarlet:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(229, 62, 62, 0.4);
+  color: white;
+}
+
+.btn-fresh-green {
+  background: linear-gradient(135deg, var(--fresh-green) 0%, #68D391 100%);
+  border: none;
+  color: white;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(56, 161, 105, 0.3);
+}
+
+.btn-fresh-green:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(56, 161, 105, 0.4);
+  color: white;
+}
+
+.btn-harvest-gold {
+  background: linear-gradient(135deg, var(--harvest-gold) 0%, #F6D55C 100%);
+  border: none;
+  color: var(--jet-black);
+  font-weight: 600;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(245, 200, 66, 0.3);
+}
+
+.btn-harvest-gold:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(245, 200, 66, 0.4);
+  color: var(--jet-black);
+}
+
+/* Dark Mode Button Adjustments */
+@media (prefers-color-scheme: dark) {
+  .btn-harvest-gold {
+    color: #1A202C !important;
+  }
+  
+  .btn-harvest-gold:hover {
+    color: #1A202C !important;
+  }
+  
+  /* Ensure other button text stays white */
+  .btn-flame-scarlet, .btn-fresh-green {
+    color: white !important;
+  }
+  
+  .btn-flame-scarlet:hover, .btn-fresh-green:hover {
+    color: white !important;
+  }
+}
+
+/* Card Styles */
+.card-appetizing {
+  border: none;
+  border-radius: 20px;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  background-color: white;
+}
+
+.card-appetizing:hover {
+  transform: translateY(-10px);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+}
+
+/* Dark Mode Card Adjustments */
+@media (prefers-color-scheme: dark) {
+  .card-appetizing {
+    background-color: #2D3748 !important;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    color: #F7FAFC !important;
+  }
+  
+  .card-appetizing:hover {
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+  }
+  
+  .card-appetizing .card-body {
+    background-color: #2D3748 !important;
+    color: #F7FAFC !important;
+  }
+  
+  /* Fix all card elements */
+  .card, .card-body, .card-header, .card-footer {
+    background-color: #2D3748 !important;
+    color: #F7FAFC !important;
+  }
+}
+
+/* Background Gradient */
+.bg-appetizing-main {
+  background: linear-gradient(135deg, #FFF8E1 0%, #E8F5E8 50%, #E3F2FD 100%);
+  min-height: 100vh;
+}
+
+/* Dark Mode Background */
+@media (prefers-color-scheme: dark) {
+  .bg-appetizing-main {
+    background: linear-gradient(135deg, #2D3748 0%, #1A202C 50%, #2C5282 100%);
+  }
+}
+
+/* Navigation Styles */
+.navbar-appetizing {
+  background: linear-gradient(90deg, var(--flame-scarlet) 0%, var(--fresh-green) 50%, var(--harvest-gold) 100%) !important;
+  box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
+}
+
+/* Theme-aware Navigation */
+.navbar-theme {
+  background-color: rgba(255, 255, 255, 0.95) !important;
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 15px rgba(0, 0, 0, 0.05);
+}
+
+.navbar-theme .navbar-brand {
+  color: var(--charcoal-gray) !important;
+}
+
+.navbar-theme .nav-link {
+  color: var(--charcoal-gray) !important;
+}
+
+.navbar-theme .nav-link:hover {
+  color: var(--flame-scarlet) !important;
+}
+
+.navbar-theme .nav-link.text-primary {
+  color: var(--flame-scarlet) !important;
+}
+
+/* Dark Mode Navigation */
+@media (prefers-color-scheme: dark) {
+  .navbar-appetizing {
+    box-shadow: 0 2px 20px rgba(255, 255, 255, 0.1);
+  }
+  
+  .navbar-theme {
+    background-color: rgba(45, 55, 72, 0.95) !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 2px 15px rgba(0, 0, 0, 0.2);
+  }
+  
+  .navbar-theme .navbar-brand {
+    color: #F7FAFC !important;
+  }
+  
+  .navbar-theme .nav-link {
+    color: #E2E8F0 !important;
+  }
+  
+  .navbar-theme .nav-link:hover {
+    color: var(--harvest-gold) !important;
+  }
+  
+  .navbar-theme .nav-link.text-primary {
+    color: var(--harvest-gold) !important;
+  }
+}
+
+/* Mobile Navigation Layout */
+@media (max-width: 991.98px) {
+  .navbar-theme .container {
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .navbar-theme .navbar-brand {
+    margin-bottom: 0.5rem;
+    text-align: center;
+  }
+  
+  .navbar-theme .navbar-nav {
+    margin-top: 0.5rem;
+  }
+  
+  .navbar-theme .nav-link {
+    padding: 0.375rem 0.75rem;
+    margin: 0 0.25rem;
+    border-radius: 0.375rem;
+    transition: all 0.2s ease;
+  }
+  
+  .navbar-theme .nav-link:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+  }
+}
+
+@media (prefers-color-scheme: dark) and (max-width: 991.98px) {
+  .navbar-theme .nav-link:hover {
+    background-color: rgba(255, 255, 255, 0.05);
+  }
+}
+
+/* Custom Form Controls */
+/* Date Input Styling - Theme-aware calendar icon */
+input[type="date"] {
+  position: relative;
+  color-scheme: light;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator {
+  background: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%23495057' viewBox='0 0 16 16'%3E%3Cpath d='M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5zM1 4v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4H1z'/%3E%3C/svg%3E");
+  background-size: 16px 16px;
+  background-repeat: no-repeat;
+  background-position: center;
+  cursor: pointer;
+  opacity: 0.7;
+  transition: opacity 0.2s ease;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator:hover {
+  opacity: 1;
+}
+
+/* Select Dropdown Styling - Custom arrow */
+.form-select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%23495057' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E") !important;
+  background-repeat: no-repeat !important;
+  background-position: right 0.75rem center !important;
+  background-size: 16px 12px !important;
+  padding-right: 2.5rem !important;
+}
+
+/* Dark Mode Form Controls */
+@media (prefers-color-scheme: dark) {
+  input[type="date"] {
+    color-scheme: dark;
+  }
+  
+  input[type="date"]::-webkit-calendar-picker-indicator {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%23E2E8F0' viewBox='0 0 16 16'%3E%3Cpath d='M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5zM1 4v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4H1z'/%3E%3C/svg%3E");
+    filter: brightness(1.2);
+  }
+  
+  .form-select {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%23E2E8F0' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E") !important;
+  }
+}
+
+/* Airport Dropdown Theming */
+.airport-dropdown-text {
+  color: var(--charcoal-gray) !important;
+}
+
+.airport-dropdown-subtext {
+  color: #6c757d !important;
+}
+
+.airport-dropdown-badge {
+  background-color: #f8f9fa !important;
+  color: var(--charcoal-gray) !important;
+  border: 1px solid #dee2e6;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  white-space: nowrap;
+  flex-shrink: 0;
+  min-width: 45px;
+  text-align: center;
+}
+
+/* Ensure proper flexbox layout for dropdown items */
+.dropdown-item.d-flex {
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 0.75rem;
+}
+
+.dropdown-item .flex-grow-1 {
+  min-width: 0; /* Allow text to wrap/truncate */
+  overflow: hidden;
+}
+
+/* Dark Mode Airport Dropdown */
+@media (prefers-color-scheme: dark) {
+  .airport-dropdown-text {
+    color: #F7FAFC !important;
+  }
+  
+  .airport-dropdown-subtext {
+    color: #A0AEC0 !important;
+  }
+  
+  .airport-dropdown-badge {
+    background-color: #4A5568 !important;
+    color: #E2E8F0 !important;
+    border: 1px solid #718096;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  }
+  
+  .dropdown-menu {
+    background-color: #2D3748 !important;
+    border: 1px solid #4A5568 !important;
+  }
+  
+  .dropdown-item:hover {
+    background-color: #4A5568 !important;
+  }
+}
+
+/* Form Styles */
+.form-control-appetizing {
+  border: 2px solid #E0E0E0;
+  border-radius: 15px;
+  padding: 12px 20px;
+  transition: all 0.3s ease;
+  background: rgba(255, 255, 255, 0.9);
+  color: #1A202C;
+}
+
+.form-control-appetizing:focus {
+  border-color: var(--flame-scarlet);
+  box-shadow: 0 0 0 0.2rem rgba(229, 62, 62, 0.25);
+  background: white;
+  color: #1A202C;
+}
+
+.form-select-appetizing {
+  border: 2px solid #E0E0E0;
+  border-radius: 15px;
+  padding: 12px 20px;
+  transition: all 0.3s ease;
+  background: rgba(255, 255, 255, 0.9);
+  color: #1A202C;
+}
+
+.form-select-appetizing:focus {
+  border-color: var(--flame-scarlet);
+  box-shadow: 0 0 0 0.2rem rgba(229, 62, 62, 0.25);
+  background: white;
+  color: #1A202C;
+}
+
+/* Dark Mode Form Styles */
+@media (prefers-color-scheme: dark) {
+  .form-control-appetizing {
+    border-color: #4A5568;
+    background: #2D3748 !important;
+    color: #F7FAFC !important;
+  }
+  
+  .form-control-appetizing:focus {
+    background: #2D3748 !important;
+    border-color: var(--flame-scarlet);
+    color: #F7FAFC !important;
+    box-shadow: 0 0 0 0.2rem rgba(252, 129, 129, 0.25);
+  }
+  
+  .form-control-appetizing::placeholder {
+    color: #A0AEC0 !important;
+  }
+  
+  .form-select-appetizing {
+    border-color: #4A5568;
+    background: #2D3748 !important;
+    color: #F7FAFC !important;
+  }
+  
+  .form-select-appetizing:focus {
+    background: #2D3748 !important;
+    border-color: var(--flame-scarlet);
+    color: #F7FAFC !important;
+    box-shadow: 0 0 0 0.2rem rgba(252, 129, 129, 0.25);
+  }
+  
+  /* Fix all Bootstrap form controls */
+  .form-control, .form-select, input, textarea {
+    background-color: #2D3748 !important;
+    border-color: #4A5568 !important;
+    color: #F7FAFC !important;
+  }
+  
+  .form-control:focus, .form-select:focus, input:focus, textarea:focus {
+    background-color: #2D3748 !important;
+    border-color: var(--flame-scarlet) !important;
+    color: #F7FAFC !important;
+    box-shadow: 0 0 0 0.2rem rgba(252, 129, 129, 0.25) !important;
+  }
+  
+  input::placeholder, textarea::placeholder {
+    color: #A0AEC0 !important;
+  }
+}
+
+/* Badge Styles */
+.badge-appetizing-orange {
+  background: linear-gradient(135deg, #ff6b35 0%, #ff8a65 100%);
+  color: white;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-weight: 600;
+}
+
+.badge-appetizing-green {
+  background: linear-gradient(135deg, #4CAF50 0%, #66BB6A 100%);
+  color: white;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-weight: 600;
+}
+
+.badge-appetizing-blue {
+  background: linear-gradient(135deg, #2196F3 0%, #42A5F5 100%);
+  color: white;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-weight: 600;
+}
+
+/* Animation Classes */
+.fade-in {
+  animation: fadeIn 0.5s ease-in;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.bounce-in {
+  animation: bounceIn 0.6s ease-out;
+}
+
+@keyframes bounceIn {
+  0% { transform: scale(0.3); opacity: 0; }
+  50% { transform: scale(1.05); }
+  70% { transform: scale(0.9); }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+/* Star Rating Styles */
+.star-rating {
+  color: #FFD700;
+  text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.3);
+}
+
+/* Dark Mode Star Rating */
+@media (prefers-color-scheme: dark) {
+  .star-rating {
+    color: #FFD700;
+    text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.8);
+  }
+}
+
+/* Restaurant Card Specific Styles */
+.restaurant-card {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+}
+
+.restaurant-card:hover {
+  transform: translateY(-8px) scale(1.02);
+}
+
+.restaurant-image {
+  position: relative;
+  overflow: hidden;
+  height: 250px;
+}
+
+.restaurant-image img {
+  transition: transform 0.3s ease;
+}
+
+.restaurant-card:hover .restaurant-image img {
+  transform: scale(1.1);
+}
+
+/* Status Badge */
+.status-badge-open {
+  background: linear-gradient(135deg, var(--fresh-green), #68D391);
+  color: white;
+  font-weight: bold;
+  box-shadow: 0 2px 10px rgba(56, 161, 105, 0.4);
+}
+
+.status-badge-closed {
+  background: linear-gradient(135deg, var(--flame-scarlet), #FC8181);
+  color: white;
+  font-weight: bold;
+  box-shadow: 0 2px 10px rgba(229, 62, 62, 0.4);
+}
+
+/* AI Recommendation Box */
+.ai-recommendation {
+  background: linear-gradient(135deg, rgba(33, 150, 243, 0.1), rgba(63, 81, 181, 0.1));
+  border-left: 4px solid #2196F3;
+  backdrop-filter: blur(10px);
+}
+
+/* Dark Mode AI Recommendation */
+@media (prefers-color-scheme: dark) {
+  .ai-recommendation {
+    background: linear-gradient(135deg, rgba(66, 165, 245, 0.2), rgba(92, 107, 192, 0.2));
+    border-left: 4px solid #42A5F5;
+  }
+}
+
+/* Food Type Badges */
+.cuisine-badge {
+  background: linear-gradient(135deg, #ff6b35, #ff8a65);
+  color: white;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Price Level Indicators */
+.price-level {
+  color: var(--fresh-green);
+  font-weight: bold;
+}
+
+/* Loading Animation */
+.loading-spinner {
+  border: 3px solid rgba(255, 107, 53, 0.3);
+  border-radius: 50%;
+  border-top: 3px solid #ff6b35;
+  width: 40px;
+  height: 40px;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Hero Section - Simplified */
+.hero-section {
+  background-color: var(--light-cream);
+  position: relative;
+  overflow: hidden;
+}
+
+/* Remove floating animation for cleaner look */
+
+/* Search Form Enhancement */
+.search-form-container {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 20px;
+}
+
+/* Dark Mode Hero and Search Form */
+@media (prefers-color-scheme: dark) {
+  .search-form-container {
+    background: #2D3748 !important;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #F7FAFC !important;
+  }
+  
+  /* Make sure the search form card is dark */
+  .card-appetizing.search-form-container,
+  .card.search-form-container {
+    background: #2D3748 !important;
+    color: #F7FAFC !important;
+  }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .hero-section h1 {
+    font-size: 2.5rem !important;
+  }
+  
+  .restaurant-card {
+    margin-bottom: 1.5rem;
+  }
+  
+  .card-appetizing:hover {
+    transform: translateY(-5px);
+  }
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bs-light);
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(135deg, var(--flame-scarlet), var(--fresh-green));
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(135deg, #FC8181, #68D391);
+}
+
+/* Global Body Dark Mode Support */
+@media (prefers-color-scheme: dark) {
+  body {
+    background-color: var(--bs-body-bg) !important;
+    color: var(--bs-body-color) !important;
+  }
+  
+  /* Force all text elements to be light in dark mode - more aggressive approach */
+  *, *::before, *::after {
+    color: #F7FAFC !important;
+  }
+  
+  /* Fix all text elements in dark mode */
+  h1, h2, h3, h4, h5, h6,
+  p, span, div, label,
+  .card-title, .card-text,
+  .form-text, .text-muted,
+  .lead, .fw-bold, .fw-semibold,
+  .display-1, .display-2, .display-3, .display-4,
+  option, select, input[type="text"], input[type="email"], 
+  input[type="password"], input[type="number"], input[type="search"],
+  textarea, .form-check-label, .form-switch .form-check-label {
+    color: #F7FAFC !important;
+  }
+  
+  /* Fix footer and any remaining light backgrounds */
+  footer, .footer, [class*="footer"] {
+    background-color: #2D3748 !important;
+    color: #F7FAFC !important;
+  }
+  
+  /* Fix any remaining white or light colored backgrounds */
+  .bg-body, .bg-body-secondary, .bg-body-tertiary {
+    background-color: #2D3748 !important;
+    color: #F7FAFC !important;
+  }
+  
+  /* Override specific Bootstrap text utilities in dark mode */
+  .text-dark, .text-black, .text-charcoal-gray, .text-jet-black {
+    color: #F7FAFC !important;
+  }
+  
+  .text-muted {
+    color: #A0AEC0 !important;
+  }
+  
+  /* Ensure form labels are visible */
+  .form-label {
+    color: #F7FAFC !important;
+  }
+  
+  /* Fix badge text - keep white for contrast */
+  .badge {
+    color: white !important;
+  }
+  
+  /* Fix Bootstrap utility classes */
+  .fw-bold, .fw-semibold, .fw-normal {
+    color: #F7FAFC !important;
+  }
+  
+  /* Fix any hardcoded dark colors */
+  [class*="text-dark"] {
+    color: #F7FAFC !important;
+  }
+  
+  /* Ensure small text is visible */
+  small, .small {
+    color: #A0AEC0 !important;
+  }
+  
+  /* Fix button text colors */
+  .btn:not(.btn-harvest-gold) {
+    color: white !important;
+  }
+  
+  /* Fix input groups and other form elements */
+  .input-group-text {
+    background-color: #2D3748 !important;
+    border-color: #4A5568 !important;
+    color: #F7FAFC !important;
+  }
+  
+  /* Fix any remaining white backgrounds */
+  .bg-white, .bg-light {
+    background-color: #2D3748 !important;
+  }
+  
+  /* Fix list groups and other components */
+  .list-group-item {
+    background-color: #2D3748 !important;
+    color: #F7FAFC !important;
+    border-color: #4A5568 !important;
+  }
+  
+  /* Fix modals and dropdowns */
+  .modal-content, .dropdown-menu {
+    background-color: #2D3748 !important;
+    color: #F7FAFC !important;
+  }
+  
+  /* Fix any hardcoded light backgrounds */
+  [class*="bg-light"], [class*="bg-white"] {
+    background-color: #2D3748 !important;
+  }
+  
+  /* Additional text fixes for stubborn elements */
+  .text-dark, .text-black, .text-secondary, .text-body {
+    color: #F7FAFC !important;
+  }
+  
+  /* Fix any remaining containers and wrappers */
+  .container, .container-fluid, .row, .col, [class*="col-"] {
+    color: #F7FAFC !important;
+  }
+  
+  /* Fix navigation and header elements */
+  .navbar, .nav, .nav-link, .navbar-nav, .navbar-brand {
+    color: #F7FAFC !important;
+  }
+  
+  /* Fix any remaining form elements */
+  .form-floating > label, .form-floating > .form-control:focus ~ label,
+  .form-floating > .form-control:not(:placeholder-shown) ~ label {
+    color: #A0AEC0 !important;
+  }
+  
+  /* Fix buttons that might have dark text */
+  .btn-outline-primary, .btn-outline-secondary, .btn-outline-success,
+  .btn-outline-info, .btn-outline-warning, .btn-outline-danger,
+  .btn-outline-light, .btn-outline-dark {
+    color: #F7FAFC !important;
+    border-color: currentColor !important;
+  }
+  
+  /* Fix any hardcoded black or dark text */
+  [style*="color: black"], [style*="color: #000"], 
+  [style*="color: dark"], [style*="color: #333"] {
+    color: #F7FAFC !important;
+  }
+}
+
+/* Improve gradient visibility in dark mode */
+@media (prefers-color-scheme: dark) {
+  .bg-harvest-gold-gradient {
+    background: linear-gradient(135deg, #F6D55C 0%, #F5C842 100%) !important;
+  }
+  
+  /* Additional comprehensive fixes for any remaining elements */
+  .text-center, .text-left, .text-right, .text-start, .text-end {
+    color: #F7FAFC !important;
+  }
+  
+  /* Fix any remaining utility text classes */
+  .text-uppercase, .text-lowercase, .text-capitalize {
+    color: #F7FAFC !important;
+  }
+  
+  /* Fix any remaining Bootstrap components */
+  .alert, .breadcrumb, .pagination, .progress, .spinner-border {
+    color: #F7FAFC !important;
+  }
+  
+  /* Final catch-all for any stubborn elements */
+  body *, html * {
+    color: #F7FAFC !important;
+  }
+  
+  /* More aggressive text overrides */
+  .card-title, .h1, .h2, .h3, .h4, .h5, .h6,
+  h1, h2, h3, h4, h5, h6 {
+    color: #F7FAFC !important;
+  }
+  
+  /* Override any remaining Bootstrap text utilities */
+  .text-dark, .text-black, .text-body, .text-secondary,
+  .text-primary, .text-info, .text-warning, .text-success,
+  .text-danger {
+    color: #F7FAFC !important;
+  }
+  
+  /* Force footer to be dark */
+  footer, footer * {
+    background-color: #2D3748 !important;
+    color: #F7FAFC !important;
+  }
+  
+  /* Override any white or light backgrounds */
+  .bg-white, .bg-light, .bg-body {
+    background-color: #2D3748 !important;
+  }
+  
+  /* Ultra-aggressive text overrides for specific problem classes */
+  .form-text, .form-text *, 
+  .text-muted, .text-muted *,
+  small.text-muted, small.text-muted *,
+  p.text-muted, p.text-muted * {
+    color: #A0AEC0 !important;
+  }
+  
+  /* Force all small elements to be visible */
+  small, .small, small *, .small * {
+    color: #A0AEC0 !important;
+  }
+  
+  /* Force all paragraph elements to be visible */
+  p, p * {
+    color: #F7FAFC !important;
+  }
+  
+  /* Override paragraph text-muted specifically */
+  p.text-muted, p.text-muted * {
+    color: #A0AEC0 !important;
+  }
+  
+  /* Exception for buttons to maintain proper contrast */
+  .btn-harvest-gold, .btn-harvest-gold * {
+    color: #1A202C !important;
+  }
+  
+  /* Exception for badges to maintain readability */
+  .badge, .badge * {
+    color: white !important;
+  }
+}
+
+/* FINAL NUCLEAR OPTION - Additional aggressive overrides */
+@media (prefers-color-scheme: dark) {
+  /* Target specific problem elements directly */
+  .form-text, .form-text *,
+  .text-muted, .text-muted *,
+  small.text-muted, small.text-muted *,
+  p.text-muted, p.text-muted *,
+  footer .text-muted, footer .text-muted * {
+    color: #A0AEC0 !important;
+  }
+  
+  /* Nuclear option for all text in footer */
+  footer, footer *, footer p, footer p *, footer small, footer small * {
+    color: #A0AEC0 !important;
+  }
+  
+  /* Nuclear option for all form text */
+  .form-text, .form-text *, div.form-text, div.form-text * {
+    color: #A0AEC0 !important;
+  }
+}
+
+/* Google Places Autocomplete Dark Mode Styles */
+@media (prefers-color-scheme: dark) {
+  /* Google Places autocomplete dropdown */
+  .pac-container {
+    background-color: #2D3748 !important;
+    border: 1px solid #4A5568 !important;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.06) !important;
+  }
+  
+  /* Individual place items */
+  .pac-item {
+    background-color: #2D3748 !important;
+    color: #F7FAFC !important;
+    border-color: #4A5568 !important;
+  }
+  
+  /* Hovered place items */
+  .pac-item:hover,
+  .pac-item-selected {
+    background-color: #4A5568 !important;
+    color: #F7FAFC !important;
+  }
+  
+  /* Place text and query styling */
+  .pac-item-query {
+    color: #F7FAFC !important;
+  }
+  
+  /* Place secondary text (address details) */
+  .pac-matched {
+    color: #E2E8F0 !important;
+    font-weight: 600;
+  }
+  
+  /* Powered by Google logo area */
+  .pac-logo:after {
+    background-color: #2D3748 !important;
+  }
+  
+  /* Icon styling */
+  .pac-icon {
+    background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA4AAAAOCAYAAAAfSC3RAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAJ1JREFUeNpi/P//PwMlgImBQjDKwOhAI7XBiVYNowytBkZpJhowytBowyhDowytHmJgYGjABMAAmhAa0WphBQhBa0KjDY1YTWi0obWgkYZWGqQNrQRYG1oJowytBo1qaMOo4IaGhoZGI6XBiVaN2ODEqIZGGyB4oJUgJRhFYh4Q/P9/Hwgbz4BQtN45CxhZIOBtYFwxOhxjxmqH8B4BMQytGhptAO8kghxhE4MQFwAMJhPfJ2+W4wAAAABJRU5ErkJggg==) !important;
+  }
+}
+
+/* Additional dark mode support for Bootstrap alert info */
+@media (prefers-color-scheme: dark) {
+  .alert-info {
+    background-color: #1e3a8a !important;
+    border-color: #1d4ed8 !important;
+    color: #dbeafe !important;
+  }
+  
+  .alert-info .bi {
+    color: #dbeafe !important;
+  }
+}
