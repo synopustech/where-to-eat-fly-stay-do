@@ -29,6 +29,9 @@ export interface AffiliateConfig {
  * Gets affiliate configuration from environment variables
  */
 export function getAffiliateConfig(): AffiliateConfig {
+  console.log('Debug - EXPEDIA_AFFCID:', process.env.EXPEDIA_AFFCID);
+  console.log('Debug - EXPEDIA_MY_AD:', process.env.EXPEDIA_MY_AD);
+  
   if (!process.env.EXPEDIA_AFFCID || !process.env.EXPEDIA_MY_AD) {
     throw new Error('Expedia affiliate configuration is required. Please set EXPEDIA_AFFCID and EXPEDIA_MY_AD environment variables.');
   }
