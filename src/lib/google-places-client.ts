@@ -77,8 +77,6 @@ export const placesClient = {
     };
     includedType?: string;
   }) {
-    console.log('Places API Search Request:', request);
-    
     const response = await fetch(`${GOOGLE_PLACES_API_BASE_URL}/places:searchText`, {
       method: 'POST',
       headers: {
@@ -93,8 +91,6 @@ export const placesClient = {
       }),
     });
 
-    console.log('Places API Response Status:', response.status);
-    
     if (!response.ok) {
       const errorText = await response.text();
       console.error('Places API Error:', response.status, response.statusText, errorText);
@@ -102,7 +98,6 @@ export const placesClient = {
     }
 
     const result = await response.json();
-    console.log('Places API Response:', result);
     return result;
   },
 
@@ -110,8 +105,6 @@ export const placesClient = {
     name: string;
     fieldMask: string;
   }) {
-    console.log('Places API GetPlace Request:', request);
-    
     const response = await fetch(`${GOOGLE_PLACES_API_BASE_URL}/${request.name}`, {
       method: 'GET',
       headers: {
@@ -120,8 +113,6 @@ export const placesClient = {
       },
     });
 
-    console.log('Places API GetPlace Response Status:', response.status);
-
     if (!response.ok) {
       const errorText = await response.text();
       console.error('Places API GetPlace Error:', response.status, response.statusText, errorText);
@@ -129,7 +120,6 @@ export const placesClient = {
     }
 
     const result = await response.json();
-    console.log('Places API GetPlace Response:', result);
     return result;
   }
 };

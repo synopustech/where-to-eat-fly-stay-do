@@ -34,11 +34,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       url: expediaUrl,
-      params: {
-        ...params,
-        // Show affiliate config being used
-        affiliateConfig
-      },
       timestamp: new Date().toISOString()
     });
 
