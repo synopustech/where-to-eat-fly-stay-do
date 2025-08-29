@@ -17,7 +17,7 @@ interface Suggestion {
 export async function GET(request: NextRequest) {
   try {
     // During build time, return empty suggestions if no valid DB connection
-    if (!process.env.MONGODB_URI || process.env.MONGODB_URI.includes('dummy')) {
+    if (!process.env.MONGODB_URI || process.env.MONGODB_URI.includes('dummy') || process.env.MONGODB_URI.includes('localhost')) {
       return NextResponse.json({
         suggestions: [],
         message: 'Database not available during build'
@@ -137,7 +137,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     // During build time, return empty stats if no valid DB connection
-    if (!process.env.MONGODB_URI || process.env.MONGODB_URI.includes('dummy')) {
+    if (!process.env.MONGODB_URI || process.env.MONGODB_URI.includes('dummy') || process.env.MONGODB_URI.includes('localhost')) {
       return NextResponse.json({
         totalSearches: 0,
         popularKeywords: [],
