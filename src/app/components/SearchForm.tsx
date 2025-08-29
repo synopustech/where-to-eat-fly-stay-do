@@ -18,13 +18,11 @@ const SearchForm: React.FC<SearchFormProps> = ({ onSearch, loading, onSortChange
   const [selectedLocationCoords, setSelectedLocationCoords] = useState<{lat: number, lng: number} | null>(null);
   const [searchRadius, setSearchRadius] = useState(10);
   const [_autocompleteReady, setAutocompleteReady] = useState(false);
-  const [_googleMapsLoaded, _setGoogleMapsLoaded] = useState(false);
+  const [_googleMapsLoaded, setGoogleMapsLoaded] = useState(false);
   const [loadingError, setLoadingError] = useState(false);
   
   const locationInputRef = useRef<HTMLInputElement>(null);
   const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
-  const [_locationSuggestions, _setLocationSuggestions] = useState<unknown[]>([]);
-  const [_showSuggestions, setShowSuggestions] = useState(false);
 
   // Fix hydration mismatch by ensuring client-side rendering
   useEffect(() => {
@@ -34,116 +32,114 @@ const SearchForm: React.FC<SearchFormProps> = ({ onSearch, loading, onSortChange
   useEffect(() => {
     if (!isClient) return;
 
+    let isComponentMounted = true;
+
     const initializeAutocomplete = () => {
-      if (!locationInputRef.current || autocompleteRef.current) return;
+      if (!isComponentMounted || !locationInputRef.current) {
+        console.log('Component not mounted or input ref not available');
+        return;
+      }
+
+      // Check if Google Maps is available
+      if (!window.google?.maps?.places?.Autocomplete) {
+        console.log('Google Maps Places API not available');
+        setLoadingError(true);
+        return;
+      }
 
       try {
-        // Check if Google Maps and Places are fully loaded
-        if (!window.google || !window.google.maps || !window.google.maps.places || !window.google.maps.places.Autocomplete) {
-          setTimeout(initializeAutocomplete, 500);
-          return;
+        console.log('Initializing Google Places Autocomplete...');
+
+        // Clean up existing autocomplete
+        if (autocompleteRef.current) {
+          google.maps.event.clearInstanceListeners(autocompleteRef.current);
+          autocompleteRef.current = null;
         }
 
-        // Get user's current location for biasing results
-        const getLocationBias = (): google.maps.places.AutocompleteOptions => {
-          const defaultOptions: google.maps.places.AutocompleteOptions = {
-            types: ['(cities)'],
-            fields: ['place_id', 'geometry', 'name', 'formatted_address']
-          };
-
-          // Try to get user's location to bias results
-          if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(
-              (position) => {
-                const _userLocation = new window.google.maps.LatLng(
-                  position.coords.latitude, 
-                  position.coords.longitude
-                );
-                
-                // Update autocomplete with location bias
-                if (autocompleteRef.current) {
-                  autocompleteRef.current.setBounds(
-                    new window.google.maps.LatLngBounds(
-                      new window.google.maps.LatLng(
-                        position.coords.latitude - 0.5,
-                        position.coords.longitude - 0.5
-                      ),
-                      new window.google.maps.LatLng(
-                        position.coords.latitude + 0.5,
-                        position.coords.longitude + 0.5
-                      )
-                    )
-                  );
-                }
-              },
-              () => {
-                // Silently fail if location access is denied
-              },
-              { timeout: 5000, enableHighAccuracy: false }
-            );
+        // Create new autocomplete instance
+        autocompleteRef.current = new google.maps.places.Autocomplete(
+          locationInputRef.current,
+          {
+            types: ['establishment', 'geocode'],
+            fields: ['place_id', 'formatted_address', 'geometry', 'name', 'types']
           }
-
-          return defaultOptions;
-        };
-
-        // Initialize Google Places Autocomplete with location bias
-        autocompleteRef.current = new window.google.maps.places.Autocomplete(
-          locationInputRef.current, 
-          getLocationBias()
         );
 
-        // Handle place selection
+        // Add place changed listener
         autocompleteRef.current.addListener('place_changed', () => {
           const place = autocompleteRef.current?.getPlace();
-          if (place && place.geometry) {
+          if (place && place.geometry && place.geometry.location) {
+            console.log('Place selected:', place);
+            const coords = {
+              lat: place.geometry.location.lat(),
+              lng: place.geometry.location.lng()
+            };
+            setSelectedLocationCoords(coords);
             setLocation(place.formatted_address || place.name || '');
-            setSelectedLocationCoords({
-              lat: place.geometry.location?.lat() || 0,
-              lng: place.geometry.location?.lng() || 0
-            });
           }
         });
 
         setAutocompleteReady(true);
         setLoadingError(false);
+        console.log('Google Places Autocomplete initialized successfully');
       } catch (error) {
-        console.error('Failed to initialize Google Places Autocomplete:', error);
+        console.error('Error initializing autocomplete:', error);
         setLoadingError(true);
-        setAutocompleteReady(true); // Still allow manual input
+        setAutocompleteReady(false);
       }
     };
 
+    // Listen for the Google Maps loaded event from layout.tsx
+    const handleGoogleMapsLoaded = () => {
+      console.log('Google Maps loaded event received');
+      setGoogleMapsLoaded(true);
+      // Add a small delay to ensure the API is fully ready
+      setTimeout(initializeAutocomplete, 100);
+    };
+
     // Check if Google Maps is already loaded
-    if (typeof window !== 'undefined' && window.google && window.google.maps && window.google.maps.places) {
+    if (window.google?.maps?.places?.Autocomplete) {
+      console.log('Google Maps already loaded');
+      setGoogleMapsLoaded(true);
       initializeAutocomplete();
     } else {
-      // Wait for Google Maps to load
-      const handleGoogleMapsLoaded = () => {
-        // Add a small delay to ensure places library is fully loaded
-        setTimeout(initializeAutocomplete, 100);
-      };
-
+      // Listen for the load event
       window.addEventListener('googleMapsLoaded', handleGoogleMapsLoaded);
       
-      // Also try to initialize periodically in case the event was missed
+      // Fallback: Poll for Google Maps availability
+      let pollCount = 0;
+      const maxPolls = 50; // 10 seconds max
       const pollInterval = setInterval(() => {
-        if (window.google && window.google.maps && window.google.maps.places) {
+        pollCount++;
+        if (window.google?.maps?.places?.Autocomplete) {
+          console.log('Google Maps detected via polling');
           clearInterval(pollInterval);
+          setGoogleMapsLoaded(true);
           initializeAutocomplete();
+        } else if (pollCount >= maxPolls) {
+          console.error('Google Maps failed to load after polling');
+          clearInterval(pollInterval);
+          setLoadingError(true);
         }
-      }, 1000);
-      
-      // Cleanup listeners
+      }, 200);
+
       return () => {
         window.removeEventListener('googleMapsLoaded', handleGoogleMapsLoaded);
         clearInterval(pollInterval);
       };
     }
+
+    return () => {
+      isComponentMounted = false;
+      if (autocompleteRef.current) {
+        google.maps.event.clearInstanceListeners(autocompleteRef.current);
+        autocompleteRef.current = null;
+      }
+    };
   }, [isClient]);
 
   const handleLocationInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setLocation(e.target.value);
-    setShowSuggestions(false);
     // Clear selected coordinates when user types manually
     if (selectedLocationCoords) {
       setSelectedLocationCoords(null);
@@ -152,12 +148,14 @@ const SearchForm: React.FC<SearchFormProps> = ({ onSearch, loading, onSortChange
 
   const handleGetCurrentLocation = async () => {
     if (!onGetUserLocation) {
+      console.log('No location handler provided');
       return;
     }
 
     setLocationLoading(true);
     try {
       const coords = await onGetUserLocation();
+      console.log('Got user location:', coords);
       setSelectedLocationCoords(coords);
       setLocation('Current Location');
     } catch (error) {
@@ -188,7 +186,7 @@ const SearchForm: React.FC<SearchFormProps> = ({ onSearch, loading, onSortChange
   }
 
   return (
-    <form onSubmit={handleSubmit} className="mb-4" suppressHydrationWarning>
+    <form onSubmit={handleSubmit} className="mb-4">
       <div className="row g-3">
         {/* Location Input */}
         <div className="col-md-6">
@@ -206,7 +204,6 @@ const SearchForm: React.FC<SearchFormProps> = ({ onSearch, loading, onSortChange
               value={location}
               onChange={handleLocationInputChange}
               required
-              suppressHydrationWarning
             />
             {onGetUserLocation && (
               <button
@@ -249,7 +246,6 @@ const SearchForm: React.FC<SearchFormProps> = ({ onSearch, loading, onSortChange
             className="form-select"
             value={searchRadius}
             onChange={(e) => setSearchRadius(Number(e.target.value))}
-            suppressHydrationWarning
           >
             {radiusOptions.map(option => (
               <option key={option.value} value={option.value}>
@@ -271,7 +267,6 @@ const SearchForm: React.FC<SearchFormProps> = ({ onSearch, loading, onSortChange
               className="form-select"
               value={currentSort || 'relevance'}
               onChange={(e) => onSortChange(e.target.value as 'relevance' | 'distance' | 'rating')}
-              suppressHydrationWarning
             >
               <option value="relevance">Relevance</option>
               <option value="distance">Distance</option>
@@ -293,7 +288,6 @@ const SearchForm: React.FC<SearchFormProps> = ({ onSearch, loading, onSortChange
             placeholder="e.g., Italian, vegetarian, spicy food, romantic atmosphere..."
             value={preferences}
             onChange={(e) => setPreferences(e.target.value)}
-            suppressHydrationWarning
           />
           <div className="form-text">
             Describe the type of cuisine, dietary restrictions, or atmosphere you&apos;re looking for.
