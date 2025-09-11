@@ -20,6 +20,9 @@
     "@anthropic-ai/sdk": "^0.57.0",
     "@googlemaps/google-maps-services-js": "^3.4.2",
     "@googlemaps/js-api-loader": "^1.16.10",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
     "autoprefixer": "^10.4.21",
     "bootstrap": "^5.3.7",
     "bootstrap-icons": "^1.13.1",
@@ -31,16 +34,13 @@
     "postcss": "^8.4.50",
     "react": "19.1.0",
     "react-dom": "19.1.0",
-    "tailwindcss": "^3.4.16"
+    "tailwindcss": "^3.4.16",
+    "typescript": "^5"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
     "@types/google.maps": "^3.58.1",
-    "@types/node": "^20",
-    "@types/react": "^19",
-    "@types/react-dom": "^19",
     "eslint": "^9",
-    "eslint-config-next": "15.4.5",
-    "typescript": "^5"
+    "eslint-config-next": "15.4.5"
   }
 }
