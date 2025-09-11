@@ -407,40 +407,93 @@ export default function DateRangePicker({
           align-items: center;
           justify-content: center;
           aspect-ratio: 1;
+          border: 1px solid transparent;
         }
         
         .date-cell.available {
-          background-color: #f8f9fa;
+          background-color: var(--bs-body-bg, #f8f9fa);
+          color: var(--bs-body-color, #212529);
+          border-color: var(--bs-border-color, #dee2e6);
           transition: all 0.2s ease;
         }
         
         .date-cell.available:hover {
-          background-color: #e9ecef;
+          background-color: var(--bs-secondary-bg, #e9ecef);
+          color: var(--bs-body-color, #212529);
           transform: scale(1.05);
+          border-color: var(--bs-primary, #0d6efd);
         }
         
         .date-cell.selected {
           background-color: #dc3545 !important;
           color: white !important;
+          border-color: #dc3545 !important;
         }
         
         .date-cell.in-range {
           background-color: #dc3545;
           opacity: 0.3;
           color: white;
+          border-color: #dc3545;
         }
         
         .date-cell.hovered {
           background-color: #dc3545;
           opacity: 0.5;
           color: white;
+          border-color: #dc3545;
         }
         
         .date-cell.disabled {
-          background-color: #f8f9fa;
-          color: #6c757d;
+          background-color: var(--bs-secondary-bg, #f8f9fa);
+          color: var(--bs-secondary-color, #6c757d);
           opacity: 0.5;
           cursor: not-allowed;
+          border-color: var(--bs-border-color, #dee2e6);
+        }
+        
+        .date-cell-empty {
+          min-height: 36px;
+        }
+        
+        /* Dark mode specific styles */
+        @media (prefers-color-scheme: dark) {
+          .date-cell.available {
+            background-color: #2d3748;
+            color: #e2e8f0;
+            border-color: #4a5568;
+          }
+          
+          .date-cell.available:hover {
+            background-color: #4a5568;
+            color: #e2e8f0;
+            border-color: #dc3545;
+          }
+          
+          .date-cell.disabled {
+            background-color: #1a202c;
+            color: #718096;
+            border-color: #2d3748;
+          }
+        }
+        
+        /* Bootstrap dark mode data attribute */
+        [data-bs-theme="dark"] .date-cell.available {
+          background-color: #2d3748;
+          color: #e2e8f0;
+          border-color: #4a5568;
+        }
+        
+        [data-bs-theme="dark"] .date-cell.available:hover {
+          background-color: #4a5568;
+          color: #e2e8f0;
+          border-color: #dc3545;
+        }
+        
+        [data-bs-theme="dark"] .date-cell.disabled {
+          background-color: #1a202c;
+          color: #718096;
+          border-color: #2d3748;
         }
         
         .date-cell-empty {

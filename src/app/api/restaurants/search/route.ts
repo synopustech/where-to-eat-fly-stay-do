@@ -26,11 +26,6 @@ interface PlaceSearchRequest {
   languageCode?: string;
 }
 
-interface PlaceDetailsRequest {
-  name: string;
-  languageCode?: string;
-}
-
 interface PlaceResult {
   id: string;
   displayName?: {
@@ -75,6 +70,40 @@ interface SearchTextResponse {
   places: PlaceResult[];
 }
 
+interface TimezoneResponse {
+  status: string;
+  timeZoneId: string;
+  timeZoneName: string;
+  rawOffset: number;
+  dstOffset: number;
+}
+
+interface GeocodeResponse {
+  results: Array<{
+    formatted_address: string;
+    address_components: Array<{
+      long_name: string;
+      short_name: string;
+      types: string[];
+    }>;
+    geometry: {
+      location: {
+        lat: number;
+        lng: number;
+      };
+    };
+  }>;
+  status: string;
+}
+
+interface ReviewText {
+  text?: string;
+}
+
+interface Review {
+  text?: ReviewText;
+}
+
 // Function to search places using new Places API
 async function searchPlacesText(request: PlaceSearchRequest): Promise<SearchTextResponse> {
   const url = 'https://places.googleapis.com/v1/places:searchText';
@@ -98,29 +127,8 @@ async function searchPlacesText(request: PlaceSearchRequest): Promise<SearchText
   return response.json();
 }
 
-// Function to get place details using new Places API
-async function getPlaceDetails(placeId: string): Promise<PlaceResult> {
-  const url = `https://places.googleapis.com/v1/places/${placeId}`;
-  
-  const headers = {
-    'X-Goog-Api-Key': process.env.GOOGLE_PLACES_API_KEY!,
-    'X-Goog-FieldMask': 'id,displayName,formattedAddress,location,rating,googleMapsUri,websiteUri,nationalPhoneNumber,priceLevel,userRatingCount,businessStatus,currentOpeningHours,photos,reviews'
-  };
-
-  const response = await fetch(url, {
-    method: 'GET',
-    headers
-  });
-
-  if (!response.ok) {
-    throw new Error(`Places API details failed: ${response.status} ${response.statusText}`);
-  }
-
-  return response.json();
-}
-
 // Function to get timezone information
-async function getTimezone(lat: number, lng: number, timestamp?: number): Promise<any> {
+async function getTimezone(lat: number, lng: number, timestamp?: number): Promise<TimezoneResponse> {
   const url = 'https://maps.googleapis.com/maps/api/timezone/json';
   const params = new URLSearchParams({
     location: `${lat},${lng}`,
@@ -138,7 +146,7 @@ async function getTimezone(lat: number, lng: number, timestamp?: number): Promis
 }
 
 // Function to reverse geocode coordinates
-async function reverseGeocode(lat: number, lng: number): Promise<any> {
+async function reverseGeocode(lat: number, lng: number): Promise<GeocodeResponse> {
   const url = 'https://maps.googleapis.com/maps/api/geocode/json';
   const params = new URLSearchParams({
     latlng: `${lat},${lng}`,
@@ -913,12 +921,12 @@ export async function POST(request: NextRequest) {
         if (details.reviews && details.reviews.length > 0) {
           try {
             const recentReviews = details.reviews.slice(0, 5);
-            const reviewTexts = recentReviews.map((r: any) => r.text?.text).filter((text: any) => text && text.length > 0);
+            const reviewTexts = recentReviews.map((r: Review) => r.text?.text).filter((text: string | undefined): text is string => text !== undefined && text.length > 0);
             if (reviewTexts.length > 0) {
               const reviewPrompt = `Based on these recent Google Maps reviews for ${details.displayName?.text}, write ONE concise sentence (max 15 words) highlighting what makes this restaurant special:
 
 Recent reviews:
-${reviewTexts.slice(0, 3).map((text: any, i: number) => `${i + 1}. "${text.substring(0, 150)}"`).join('\n')}
+${reviewTexts.slice(0, 3).map((text: string, i: number) => `${i + 1}. "${text.substring(0, 150)}"`).join('\n')}
 
 Respond with just one sentence, no quotes or extra text.`;
 
