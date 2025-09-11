@@ -277,7 +277,7 @@ export default function DateRangePicker({
                 {/* Day Names Header */}
                 <div className="row g-1 mb-2">
                   {dayNames.map(day => (
-                    <div key={day} className="col text-center">
+                    <div key={day} className="col-date text-center">
                       <small className="text-charcoal-gray fw-semibold">{day}</small>
                     </div>
                   ))}
@@ -288,7 +288,7 @@ export default function DateRangePicker({
                   {Array.from({ length: Math.ceil(getDaysInMonth(currentMonth).length / 7) }, (_, weekIndex) => (
                     <div key={weekIndex} className="row g-1 mb-1">
                       {getDaysInMonth(currentMonth).slice(weekIndex * 7, (weekIndex + 1) * 7).map((date, dayIndex) => (
-                        <div key={dayIndex} className="col">
+                        <div key={dayIndex} className="col-date">
                           {date ? (
                             <button
                               type="button"
@@ -321,7 +321,7 @@ export default function DateRangePicker({
                   {/* Day Names Header */}
                   <div className="row g-1 mb-2">
                     {dayNames.map(day => (
-                      <div key={`second-${day}`} className="col text-center">
+                      <div key={`second-${day}`} className="col-date text-center">
                         <small className="text-charcoal-gray fw-semibold">{day}</small>
                       </div>
                     ))}
@@ -332,7 +332,7 @@ export default function DateRangePicker({
                     {Array.from({ length: Math.ceil(getDaysInMonth(getNextMonth()).length / 7) }, (_, weekIndex) => (
                       <div key={weekIndex} className="row g-1 mb-1">
                         {getDaysInMonth(getNextMonth()).slice(weekIndex * 7, (weekIndex + 1) * 7).map((date, dayIndex) => (
-                          <div key={dayIndex} className="col">
+                          <div key={dayIndex} className="col-date">
                             {date ? (
                               <button
                                 type="button"
@@ -392,6 +392,61 @@ export default function DateRangePicker({
           </div>
         </>
       )}
+
+      <style jsx>{`
+        .col-date {
+          flex: 0 0 calc(100% / 7);
+          max-width: calc(100% / 7);
+          padding-left: 0.125rem;
+          padding-right: 0.125rem;
+        }
+        
+        .date-cell {
+          min-height: 36px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          aspect-ratio: 1;
+        }
+        
+        .date-cell.available {
+          background-color: #f8f9fa;
+          transition: all 0.2s ease;
+        }
+        
+        .date-cell.available:hover {
+          background-color: #e9ecef;
+          transform: scale(1.05);
+        }
+        
+        .date-cell.selected {
+          background-color: #dc3545 !important;
+          color: white !important;
+        }
+        
+        .date-cell.in-range {
+          background-color: #dc3545;
+          opacity: 0.3;
+          color: white;
+        }
+        
+        .date-cell.hovered {
+          background-color: #dc3545;
+          opacity: 0.5;
+          color: white;
+        }
+        
+        .date-cell.disabled {
+          background-color: #f8f9fa;
+          color: #6c757d;
+          opacity: 0.5;
+          cursor: not-allowed;
+        }
+        
+        .date-cell-empty {
+          min-height: 36px;
+        }
+      `}</style>
     </div>
   );
 }
