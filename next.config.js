@@ -1,4 +1,6 @@
 /** @type {import('next').NextConfig} */
+const path = require('path');
+
 const nextConfig = {
   // Configure external image domains
   images: {
@@ -20,6 +22,15 @@ const nextConfig = {
   
   // External packages for server components
   serverExternalPackages: ['@googlemaps/google-maps-services-js'],
+  
+  // Webpack configuration for path aliases
+  webpack: (config) => {
+    config.resolve.alias = {
+      ...config.resolve.alias,
+      '@': path.resolve(__dirname, 'src'),
+    };
+    return config;
+  },
   
   // Allow access from local network devices during development
   // Note: allowedDevOrigins is not available in current Next.js version
