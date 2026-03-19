@@ -469,13 +469,16 @@ Write 2-3 sentences summarizing what diners love, the standout dishes, and the a
       (r): r is Restaurant => r !== null
     );
 
-    // Sort: open first, then by distance, then by rating
+    // Sort: open first, then by distance, then by rating (include closed restaurants based on radius)
     const rankedRestaurants = restaurants
-      .filter((r) => r.isOpen)
       .sort((a, b) => {
+        // Open restaurants come first
+        if (a.isOpen !== b.isOpen) return b.isOpen ? 1 : -1;
+        // Then sort by distance
         if (a.distance !== undefined && b.distance !== undefined) {
           if (Math.abs(a.distance - b.distance) > 0.5) return a.distance - b.distance;
         }
+        // Then by rating
         return b.rating - a.rating;
       })
       .slice(0, 10);
