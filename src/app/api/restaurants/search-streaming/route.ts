@@ -1,19 +1,21 @@
 /**
  * Streaming Restaurant Search API
  *
- * Day 1–2 of the Vercel Intensive:
- * - Replaces raw @anthropic-ai/sdk with Vercel AI SDK (streamText)
+ * Vercel Intensive:
+ * - Uses Vercel AI Gateway (model strings like 'anthropic/claude-haiku-4-5')
  * - Streams the AI summary progressively via Server-Sent Events (SSE)
  * - Distinguishes PROVIDER_TIMEOUT vs FUNCTION_TIMEOUT vs STREAM_ERROR
  *
  * Interview talking point:
- * "I can explain stream failures at the protocol level — here's how I handle
- *  Anthropic provider timeouts vs Vercel Edge Function limits vs mid-stream drops."
+ * "I route all AI calls through Vercel AI Gateway for unified billing,
+ *  automatic retries, and observability — with a single AI_GATEWAY_API_KEY."
  */
 
-import { streamText } from 'ai';
-import { anthropic } from '@ai-sdk/anthropic';
+import { streamText, generateText } from 'ai';
 import { NextRequest } from 'next/server';
+
+// Vercel AI Gateway model — all AI calls use Haiku for speed + cost efficiency
+const AI_MODEL = 'anthropic/claude-haiku-4-5';
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
@@ -253,8 +255,8 @@ export async function POST(request: NextRequest) {
     if (!location) {
       return errorJson('Location is required', 400);
     }
-    if (!process.env.CLAUDE_API_KEY) {
-      return errorJson('Claude API key not configured', 500);
+    if (!process.env.AI_GATEWAY_API_KEY && !process.env.CLAUDE_API_KEY) {
+      return errorJson('AI Gateway API key not configured', 500);
     }
     if (!process.env.GOOGLE_PLACES_API_KEY) {
       return errorJson('Google Places API key not configured', 500);
@@ -347,7 +349,7 @@ export async function POST(request: NextRequest) {
           photoUrl = `https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photo_reference=${ref}&key=${process.env.GOOGLE_PLACES_API_KEY}`;
         }
 
-        // Per-restaurant AI snippet (still using Anthropic SDK for small parallel calls)
+        // Per-restaurant AI summary via AI Gateway (generateText for non-streaming)
         let aiRecommendation = '';
         if (place.reviews?.length) {
           const reviewTexts = place.reviews
@@ -357,26 +359,20 @@ export async function POST(request: NextRequest) {
 
           if (reviewTexts.length) {
             try {
-              // Use Vercel AI SDK for individual snippets too
-              const { text } = await (async () => {
-                const result = streamText({
-                  model: anthropic('claude-haiku-4-5-20251001'),
-                  messages: [
-                    {
-                      role: 'user',
-                      content: `Based on these reviews for ${place.displayName?.text}, write ONE sentence (max 15 words) highlighting what makes it special:\n${reviewTexts.map((t, i) => `${i + 1}. "${t.substring(0, 120)}"`).join('\n')}\nRespond with just the sentence, no quotes.`,
-                    },
-                  ],
-                  maxOutputTokens: 50,
-                });
-                // Collect the full text from the stream
-                let fullText = '';
-                for await (const chunk of result.textStream) {
-                  fullText += chunk;
-                }
-                return { text: fullText };
-              })();
-              aiRecommendation = text.trim().replace(/['"]/g, '');
+              const { text } = await generateText({
+                model: AI_MODEL,
+                messages: [
+                  {
+                    role: 'user',
+                    content: `You are a restaurant critic. Based on these reviews for "${place.displayName?.text}" (${place.rating}★, ${place.formattedAddress}):
+${reviewTexts.map((t, i) => `${i + 1}. "${t.substring(0, 200)}"`).join('\n')}
+
+Write 2-3 sentences summarizing what diners love, the standout dishes, and the atmosphere. Be specific and vivid. No quotes around your response.`,
+                  },
+                ],
+                maxOutputTokens: 100,
+              });
+              aiRecommendation = text.trim().replace(/^["']|["']$/g, '');
             } catch {
               // fall through to rating-based fallback
             }
@@ -464,25 +460,28 @@ export async function POST(request: NextRequest) {
       preferences,
     });
 
-    const summaryPrompt = `You are a friendly restaurant expert. The user searched for "${preferences || location}" in ${searchLocation}.
+    const summaryPrompt = `You are a friendly, knowledgeable local restaurant guide. The user searched for "${preferences || 'restaurants'}" in ${searchLocation}.
 
-Here are the top results:
+Here are the top ${rankedRestaurants.length} results:
 ${rankedRestaurants
   .map(
     (r, i) =>
-      `${i + 1}. ${r.name} (${r.rating}★${r.distance ? `, ${r.distance.toFixed(1)} km away` : ''}) — ${r.aiRecommendation}`
+      `${i + 1}. ${r.name} (${r.rating}★${r.distance ? `, ${r.distance.toFixed(1)} km away` : ''}${r.priceLevel ? `, ${'$'.repeat(r.priceLevel)}` : ''}) — ${r.aiRecommendation}`
   )
   .join('\n')}
 
-Provide a concise summary (3–5 sentences) covering:
-1. Overall vibe of the options
-2. Your top pick and why
-3. One practical tip for the visit`;
+Write a helpful overview (4–6 sentences) that includes:
+1. The overall dining scene for this search — what cuisines and price ranges are available
+2. Your #1 pick with a specific reason why (mention a standout dish or feature)
+3. A good runner-up for a different vibe or cuisine
+4. One practical tip (best time to visit, parking, reservations, etc.)
+
+Be conversational and specific. Reference actual restaurant names.`;
 
     const result = streamText({
-      model: anthropic('claude-sonnet-4-6'),
+      model: AI_MODEL,
       messages: [{ role: 'user', content: summaryPrompt }],
-      maxOutputTokens: 300,
+      maxOutputTokens: 400,
     });
 
     // Build an SSE stream:
