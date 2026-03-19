@@ -120,10 +120,29 @@ export async function GET(request: NextRequest) {
       return new Date(b.lastUsed).getTime() - new Date(a.lastUsed).getTime();
     });
 
-    return NextResponse.json({
+    const payload = {
       suggestions: suggestions.slice(0, limit),
       total: suggestions.length
-    });
+    };
+
+    // ── Stale-While-Revalidate (SWR) cache headers ──────────────────────
+    // Day 11 of the Vercel Intensive: teach the x-vercel-cache lifecycle.
+    //
+    //   s-maxage=30         → Edge CDN serves fresh cache for 30 s
+    //   stale-while-revalidate=86400  → After 30 s, serve stale instantly while
+    //                                   Vercel revalidates in the background.
+    //                                   Users never wait; data is "fresh enough."
+    //
+    // Interview talking point:
+    // "Suggestions are read-heavy but don't need real-time accuracy. SWR gives
+    //  users instant responses from edge cache while new searches update the DB
+    //  silently in the background — zero latency, always warm."
+    const response = NextResponse.json(payload);
+    response.headers.set(
+      'Cache-Control',
+      'public, s-maxage=30, stale-while-revalidate=86400'
+    );
+    return response;
 
   } catch (error) {
     console.error('Error fetching suggestions:', error);

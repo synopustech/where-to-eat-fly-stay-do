@@ -1,0 +1,44 @@
+{
+  "buildCommand": "npm run build",
+  "devCommand": "npm run dev",
+  "outputDirectory": ".next",
+  "framework": "nextjs",
+  "functions": {
+    "src/app/api/restaurants/search/route.ts": {
+      "maxDuration": 30,
+      "memory": 1024
+    },
+    "src/app/api/restaurants/search-streaming/route.ts": {
+      "maxDuration": 30,
+      "memory": 1024
+    },
+    "src/app/api/suggestions/route.ts": {
+      "maxDuration": 10,
+      "memory": 512
+    }
+  },
+  "headers": [
+    {
+      "source": "/api/restaurants/search-streaming",
+      "headers": [
+        { "key": "Cache-Control", "value": "no-cache, no-store, must-revalidate" },
+        { "key": "Access-Control-Allow-Origin", "value": "*" },
+        { "key": "Access-Control-Allow-Methods", "value": "POST, OPTIONS" }
+      ]
+    },
+    {
+      "source": "/suggested-restaurants",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, s-maxage=60, stale-while-revalidate=600"
+        }
+      ]
+    }
+  ],
+  "env": {
+    "CLAUDE_API_KEY": "@claude_api_key",
+    "GOOGLE_PLACES_API_KEY": "@google_places_api_key",
+    "MONGODB_URI": "@mongodb_uri"
+  }
+}
