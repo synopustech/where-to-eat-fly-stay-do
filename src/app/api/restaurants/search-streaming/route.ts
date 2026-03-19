@@ -11,11 +11,11 @@
  *  automatic retries, and observability — with a single AI_GATEWAY_API_KEY."
  */
 
-import { streamText, generateText } from 'ai';
+import { streamText, generateText, gateway } from 'ai';
 import { NextRequest } from 'next/server';
 
 // Vercel AI Gateway model — all AI calls use Haiku for speed + cost efficiency
-const AI_MODEL = 'anthropic/claude-haiku-4-5';
+const AI_MODEL = gateway('anthropic/claude-haiku-4-5');
 
 // ── Types ──────────────────────────────────────────────────────────────────
 

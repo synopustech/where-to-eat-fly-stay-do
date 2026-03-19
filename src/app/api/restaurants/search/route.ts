@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { generateText } from 'ai';
+import { generateText, gateway } from 'ai';
 import dbConnect from '@/lib/mongodb';
 import SearchHistory from '@/models/SearchHistory';
 import PopularKeyword from '@/models/PopularKeyword';
 
 // Vercel AI Gateway model — routed via AI_GATEWAY_API_KEY
-const AI_MODEL = 'anthropic/claude-haiku-4-5';
+const AI_MODEL = gateway('anthropic/claude-haiku-4-5');
 
 // New Places API helper functions
 interface PlaceSearchRequest {
