@@ -1,13 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
-import Anthropic from '@anthropic-ai/sdk';
+import { generateText } from 'ai';
 import dbConnect from '@/lib/mongodb';
 import SearchHistory from '@/models/SearchHistory';
 import PopularKeyword from '@/models/PopularKeyword';
 
-// Initialize clients
-const anthropic = new Anthropic({
-  apiKey: process.env.CLAUDE_API_KEY,
-});
+// Vercel AI Gateway model — routed via AI_GATEWAY_API_KEY
+const AI_MODEL = 'anthropic/claude-haiku-4-5';
 
 // New Places API helper functions
 interface PlaceSearchRequest {
@@ -930,15 +928,13 @@ ${reviewTexts.slice(0, 3).map((text: string, i: number) => `${i + 1}. "${text.su
 
 Respond with just one sentence, no quotes or extra text.`;
 
-              const quickResponse = await anthropic.messages.create({
-                model: process.env.CLAUDE_MODEL || 'claude-sonnet-4-20250514',
-                max_tokens: 50,
+              const { text: snippetText } = await generateText({
+                model: AI_MODEL,
                 messages: [{ role: 'user', content: reviewPrompt }],
+                maxOutputTokens: 50,
               });
 
-              aiRecommendation = quickResponse.content[0].type === 'text' 
-                ? quickResponse.content[0].text.trim().replace(/['"]/g, '') 
-                : '';
+              aiRecommendation = snippetText.trim().replace(/^["']|["']$/g, '');
                 
             } else {
               // Fallback: Create a generic recommendation based on rating and type
@@ -1098,21 +1094,11 @@ Important: Only return valid JSON, no additional text.
     let aiSummary = '';
 
     try {
-      const modelToUse = process.env.CLAUDE_MODEL || 'claude-sonnet-4-20250514';
-      const maxTokens = parseInt(process.env.CLAUDE_MAX_TOKENS || '1000');
-      
-      const claudeResponse = await anthropic.messages.create({
-        model: modelToUse,
-        max_tokens: maxTokens,
-        messages: [
-          {
-            role: 'user',
-            content: claudePrompt,
-          },
-        ],
+      const { text: responseText } = await generateText({
+        model: AI_MODEL,
+        messages: [{ role: 'user', content: claudePrompt }],
+        maxOutputTokens: 1000,
       });
-
-      const responseText = claudeResponse.content[0].type === 'text' ? claudeResponse.content[0].text : '';
       
       try {
         const aiResponse = JSON.parse(responseText);
