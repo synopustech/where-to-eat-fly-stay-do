@@ -244,6 +244,7 @@ export default function Home() {
       const reader = response.body.getReader();
       const decoder = new TextDecoder();
       let buffer = '';
+      let receivedRestaurants = false;
 
       while (true) {
         const { done, value } = await reader.read();
@@ -267,6 +268,7 @@ export default function Home() {
               const sorted = sortRestaurants(event.restaurants, sortBy);
               setOriginalRestaurants(event.restaurants);
               setRestaurants(sorted);
+              receivedRestaurants = true;
               setLoading(false); // cards are ready; keep showing streaming indicator
             } else if (event.type === 'delta') {
               // Progressive AI summary — append each text chunk as it arrives
@@ -284,7 +286,7 @@ export default function Home() {
                 setAiSummary((prev) =>
                   prev + '\n\n_(AI summary unavailable — upstream provider timed out.)_'
                 );
-              } else if (!restaurants.length) {
+              } else if (!receivedRestaurants) {
                 setError(`Search failed: ${event.message}`);
               }
             }
@@ -295,7 +297,7 @@ export default function Home() {
       }
 
       // If no restaurants were received at all, show empty state
-      if (!restaurants.length) {
+      if (!receivedRestaurants) {
         setError('No places found in this location. Try a different search.');
       }
     } catch (err) {
