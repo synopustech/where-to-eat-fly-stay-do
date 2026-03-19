@@ -561,6 +561,43 @@ Be conversational and specific. Reference actual restaurant names.`;
           );
         } catch (streamErr) {
           const errorType = classifyError(streamErr, streamStartedAt);
+
+          // For non-timeout errors with time remaining, try a lightweight fallback prompt
+          // using just the restaurant names + location (no reviews needed — AI has world knowledge)
+          if (
+            errorType !== 'FUNCTION_TIMEOUT' &&
+            errorType !== 'PROVIDER_TIMEOUT' &&
+            Date.now() - streamStartedAt! < FUNCTION_TIMEOUT_BUDGET - 5_000
+          ) {
+            try {
+              const fallbackPrompt = `Restaurants in ${searchLocation}:\n${rankedRestaurants
+                .map((r, i) => `${i + 1}. ${r.name} (${r.rating}★)`)
+                .join('\n')}\n\nBriefly recommend the best option in 2-3 sentences.`;
+
+              const { text: fallbackText } = await generateText({
+                model: getModel(),
+                messages: [{ role: 'user', content: fallbackPrompt }],
+                maxOutputTokens: 150,
+              });
+
+              if (fallbackText.trim()) {
+                controller.enqueue(
+                  encoder.encode(
+                    `data: ${JSON.stringify({ type: 'delta', text: fallbackText.trim() })}\n\n`
+                  )
+                );
+                controller.enqueue(
+                  encoder.encode(
+                    `data: ${JSON.stringify({ type: 'done', duration: Date.now() - streamStartedAt! })}\n\n`
+                  )
+                );
+                return;
+              }
+            } catch {
+              // fallback also failed — fall through to error event
+            }
+          }
+
           controller.enqueue(
             encoder.encode(
               `data: ${JSON.stringify({
