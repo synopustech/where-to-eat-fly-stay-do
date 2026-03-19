@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import RestaurantCard from './components/RestaurantCard';
 import SearchForm from './components/SearchForm';
@@ -38,6 +38,7 @@ export default function Home() {
   const [sortBy, setSortBy] = useState<'relevance' | 'distance' | 'rating'>('relevance');
   const [originalRestaurants, setOriginalRestaurants] = useState<Restaurant[]>([]);
   const [searchTerms, setSearchTerms] = useState<string>('');
+  const abortControllerRef = useRef<AbortController | null>(null);
 
   // Prevent hydration mismatch
   useEffect(() => {
@@ -198,9 +199,15 @@ export default function Home() {
     setLoading(true);
     setError(null);
     setRestaurants([]);
+    setOriginalRestaurants([]);
     setAiSummary('');
-      setAiStreaming(false);
+    setAiStreaming(false);
     setSearchTerms(preferences);
+
+    // Cancel any in-flight stream from a previous search
+    abortControllerRef.current?.abort();
+    const abortController = new AbortController();
+    abortControllerRef.current = abortController;
 
     const searchData: {
       location: string;
@@ -224,6 +231,7 @@ export default function Home() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(searchData),
+        signal: abortController.signal,
       });
 
       if (!response.ok || !response.body) {
@@ -250,6 +258,7 @@ export default function Home() {
       let summaryReceived = false;
 
       while (true) {
+        if (abortController.signal.aborted) break;
         const { done, value } = await reader.read();
         if (done) break;
 
@@ -313,6 +322,7 @@ export default function Home() {
         setError('No places found in this location. Try a different search.');
       }
     } catch (err) {
+      if (err instanceof Error && err.name === 'AbortError') return; // new search started, discard
       console.error('Search error:', err);
       setError(err instanceof Error ? err.message : 'An error occurred while searching');
       setRestaurants([]);
