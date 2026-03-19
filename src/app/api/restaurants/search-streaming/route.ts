@@ -12,10 +12,17 @@
  */
 
 import { streamText, generateText, gateway } from 'ai';
+import { createAnthropic } from '@ai-sdk/anthropic';
 import { NextRequest } from 'next/server';
 
-// Vercel AI Gateway model — all AI calls use Haiku for speed + cost efficiency
-const AI_MODEL = gateway('anthropic/claude-haiku-4-5');
+// Use Vercel AI Gateway when AI_GATEWAY_API_KEY is set; otherwise fall back to direct Anthropic
+function getModel() {
+  if (process.env.AI_GATEWAY_API_KEY) {
+    return gateway('anthropic/claude-haiku-4-5');
+  }
+  const anthropic = createAnthropic({ apiKey: process.env.CLAUDE_API_KEY });
+  return anthropic('claude-haiku-4-5-20251001');
+}
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
@@ -360,7 +367,7 @@ export async function POST(request: NextRequest) {
           if (reviewTexts.length) {
             try {
               const { text } = await generateText({
-                model: AI_MODEL,
+                model: getModel(),
                 messages: [
                   {
                     role: 'user',
@@ -479,7 +486,7 @@ Write a helpful overview (4–6 sentences) that includes:
 Be conversational and specific. Reference actual restaurant names.`;
 
     const result = streamText({
-      model: AI_MODEL,
+      model: getModel(),
       messages: [{ role: 'user', content: summaryPrompt }],
       maxOutputTokens: 400,
     });

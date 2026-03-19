@@ -1,11 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { generateText, gateway } from 'ai';
+import { createAnthropic } from '@ai-sdk/anthropic';
 import dbConnect from '@/lib/mongodb';
 import SearchHistory from '@/models/SearchHistory';
 import PopularKeyword from '@/models/PopularKeyword';
 
-// Vercel AI Gateway model — routed via AI_GATEWAY_API_KEY
-const AI_MODEL = gateway('anthropic/claude-haiku-4-5');
+// Use Vercel AI Gateway when AI_GATEWAY_API_KEY is set; otherwise fall back to direct Anthropic
+function getModel() {
+  if (process.env.AI_GATEWAY_API_KEY) {
+    return gateway('anthropic/claude-haiku-4-5');
+  }
+  const anthropic = createAnthropic({ apiKey: process.env.CLAUDE_API_KEY });
+  return anthropic('claude-haiku-4-5-20251001');
+}
 
 // New Places API helper functions
 interface PlaceSearchRequest {
@@ -929,7 +936,7 @@ ${reviewTexts.slice(0, 3).map((text: string, i: number) => `${i + 1}. "${text.su
 Respond with just one sentence, no quotes or extra text.`;
 
               const { text: snippetText } = await generateText({
-                model: AI_MODEL,
+                model: getModel(),
                 messages: [{ role: 'user', content: reviewPrompt }],
                 maxOutputTokens: 50,
               });
@@ -1095,7 +1102,7 @@ Important: Only return valid JSON, no additional text.
 
     try {
       const { text: responseText } = await generateText({
-        model: AI_MODEL,
+        model: getModel(),
         messages: [{ role: 'user', content: claudePrompt }],
         maxOutputTokens: 1000,
       });
