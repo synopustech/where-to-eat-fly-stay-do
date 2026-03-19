@@ -198,54 +198,104 @@ export default function Home() {
     setError(null);
     setRestaurants([]);
     setAiSummary('');
-    setSearchTerms(preferences); // Store search terms for relevance scoring
+    setSearchTerms(preferences);
+
+    const searchData: {
+      location: string;
+      preferences: string;
+      radius: number;
+      userLocation?: { lat: number; lng: number };
+    } = {
+      location,
+      preferences,
+      radius: radius * 1000,
+    };
+
+    if (selectedCoords) {
+      searchData.userLocation = selectedCoords;
+    } else if (userLocation) {
+      searchData.userLocation = userLocation;
+    }
 
     try {
-      const endpoint = '/api/restaurants/search';
-      
-      const searchData: {
-        location: string;
-        preferences: string;
-        radius: number;
-        userLocation?: { lat: number; lng: number };
-      } = { 
-        location, 
-        preferences,
-        radius: radius * 1000 // Convert km to meters for Google API
-      };
-
-      // Add user location coordinates - prioritize selectedCoords from autocomplete
-      if (selectedCoords) {
-        searchData.userLocation = selectedCoords;
-      } else if (userLocation) {
-        searchData.userLocation = userLocation;
-      }
-
-      const response = await fetch(endpoint, {
+      const response = await fetch('/api/restaurants/search-streaming', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(searchData),
       });
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to search restaurants');
+      if (!response.ok || !response.body) {
+        const errData = await response.json().catch(() => ({ error: 'Request failed' }));
+        throw new Error(errData.error || 'Failed to search restaurants');
       }
 
-      if (data.restaurants && data.restaurants.length > 0) {
-        setOriginalRestaurants(data.restaurants);
-        const sortedRestaurants = sortRestaurants(data.restaurants, sortBy);
-        setRestaurants(sortedRestaurants);
-        
-        if (data.summary) {
-          setAiSummary(data.summary);
+      // ── Consume Server-Sent Events stream ─────────────────────────────
+      // The stream sends three event types:
+      //   {"type":"meta","restaurants":[...]}  → render cards immediately
+      //   {"type":"delta","text":"..."}        → append to AI summary progressively
+      //   {"type":"done","duration":N}         → stream finished
+      //   {"type":"error","errorType":"..."}   → upstream error
+      //
+      // This teaches the difference between:
+      //   FUNCTION_TIMEOUT  = Vercel Edge hit 30 s wall-clock limit
+      //   PROVIDER_TIMEOUT  = Anthropic upstream took too long
+      //   STREAM_ERROR      = mid-stream failure after streaming began
+
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = '';
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+
+        // SSE frames are newline-delimited; process all complete frames
+        const frames = buffer.split('\n\n');
+        buffer = frames.pop() ?? ''; // keep incomplete trailing frame
+
+        for (const frame of frames) {
+          const line = frame.trim();
+          if (!line.startsWith('data: ')) continue;
+
+          try {
+            const event = JSON.parse(line.slice(6));
+
+            if (event.type === 'meta') {
+              // Restaurants arrive before AI summary — render cards first
+              const sorted = sortRestaurants(event.restaurants, sortBy);
+              setOriginalRestaurants(event.restaurants);
+              setRestaurants(sorted);
+              setLoading(false); // cards are ready; keep showing streaming indicator
+            } else if (event.type === 'delta') {
+              // Progressive AI summary — append each text chunk as it arrives
+              setAiSummary((prev) => prev + event.text);
+            } else if (event.type === 'done') {
+              console.info(`[Stream] Complete in ${event.duration}ms`);
+            } else if (event.type === 'error') {
+              // Differentiate error sources for RCA practice
+              console.error(`[Stream][${event.errorType}] ${event.message}`);
+              if (event.errorType === 'FUNCTION_TIMEOUT') {
+                setAiSummary((prev) =>
+                  prev + '\n\n_(Summary truncated — request exceeded Edge Function time limit.)_'
+                );
+              } else if (event.errorType === 'PROVIDER_TIMEOUT') {
+                setAiSummary((prev) =>
+                  prev + '\n\n_(AI summary unavailable — upstream provider timed out.)_'
+                );
+              } else if (!restaurants.length) {
+                setError(`Search failed: ${event.message}`);
+              }
+            }
+          } catch (parseErr) {
+            console.warn('[Stream] Failed to parse SSE frame:', parseErr);
+          }
         }
-      } else {
-        setRestaurants([]);
-        setOriginalRestaurants([]);
+      }
+
+      // If no restaurants were received at all, show empty state
+      if (!restaurants.length) {
         setError('No places found in this location. Try a different search.');
       }
     } catch (err) {
@@ -324,7 +374,7 @@ export default function Home() {
           </div>
         </div>
 
-        {/* AI Summary */}
+        {/* AI Summary — streams in progressively from the SSE endpoint */}
         {aiSummary && (
           <div className="card card-appetizing mb-5 fade-in">
             <div className="card-body p-4 p-md-5">
@@ -332,7 +382,23 @@ export default function Home() {
                 <i className="bi bi-robot me-2 text-primary"></i>
                 AI Recommendations Summary
               </h2>
-              <p className="lead text-muted mb-0">{aiSummary}</p>
+              <p className="lead text-muted mb-0">
+                {aiSummary}
+                {/* Blinking cursor shown while stream is still arriving */}
+                {loading && (
+                  <span
+                    style={{
+                      display: 'inline-block',
+                      width: '2px',
+                      height: '1.1em',
+                      background: 'currentColor',
+                      marginLeft: '2px',
+                      verticalAlign: 'text-bottom',
+                      animation: 'blink 1s step-end infinite',
+                    }}
+                  />
+                )}
+              </p>
             </div>
           </div>
         )}
