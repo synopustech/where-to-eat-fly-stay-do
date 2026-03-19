@@ -135,6 +135,23 @@ async function reverseGeocode(lat: number, lng: number) {
   }>;
 }
 
+async function forwardGeocode(address: string): Promise<{ lat: number; lng: number } | null> {
+  const params = new URLSearchParams({
+    address,
+    key: process.env.GOOGLE_PLACES_API_KEY!,
+  });
+  const res = await fetch(
+    `https://maps.googleapis.com/maps/api/geocode/json?${params}`
+  );
+  if (!res.ok) return null;
+  const data = await res.json() as {
+    results: Array<{ geometry: { location: { lat: number; lng: number } } }>;
+    status: string;
+  };
+  const loc = data.results?.[0]?.geometry?.location;
+  return loc ?? null;
+}
+
 async function getLocationTime(lat: number, lng: number): Promise<Date> {
   try {
     const tz = await getTimezone(lat, lng);
@@ -285,6 +302,14 @@ export async function POST(request: NextRequest) {
         }
       } catch {
         // keep original location string
+      }
+    } else if (!userCoords) {
+      // Forward-geocode the text location so we can apply the radius bias
+      try {
+        const coords = await forwardGeocode(location);
+        if (coords) userCoords = coords;
+      } catch {
+        // proceed without coords — radius won't apply but search still works
       }
     }
 
