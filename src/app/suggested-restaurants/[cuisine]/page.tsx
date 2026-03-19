@@ -43,9 +43,10 @@ export async function generateStaticParams() {
 export async function generateMetadata({
   params,
 }: {
-  params: { cuisine: string };
+  params: Promise<{ cuisine: string }>;
 }): Promise<Metadata> {
-  const name = params.cuisine.charAt(0).toUpperCase() + params.cuisine.slice(1);
+  const { cuisine } = await params;
+  const name = cuisine.charAt(0).toUpperCase() + cuisine.slice(1);
   return {
     title: `Best ${name} Restaurants Near You`,
     description: `ISR-powered page: Top ${name} restaurant suggestions, refreshed every 60 seconds without a full rebuild.`,
@@ -82,10 +83,11 @@ async function getSuggestedRestaurants(cuisine: string) {
 export default async function SuggestedRestaurantsPage({
   params,
 }: {
-  params: { cuisine: string };
+  params: Promise<{ cuisine: string }>;
 }) {
-  const { cuisine, suggestions, generatedAt } = await getSuggestedRestaurants(
-    params.cuisine
+  const { cuisine } = await params;
+  const { suggestions, generatedAt } = await getSuggestedRestaurants(
+    cuisine
   );
 
   const displayName = cuisine.charAt(0).toUpperCase() + cuisine.slice(1);

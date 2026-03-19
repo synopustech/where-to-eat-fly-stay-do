@@ -14,9 +14,6 @@
 import { streamText } from 'ai';
 import { anthropic } from '@ai-sdk/anthropic';
 import { NextRequest } from 'next/server';
-import dbConnect from '@/lib/mongodb';
-import SearchHistory from '@/models/SearchHistory';
-import PopularKeyword from '@/models/PopularKeyword';
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
@@ -170,6 +167,8 @@ async function saveSearchHistory(
     return;
 
   try {
+    const dbConnect = (await import('@/lib/mongodb')).default;
+    const SearchHistory = (await import('@/models/SearchHistory')).default;
     await dbConnect();
     await SearchHistory.create({ location, preferences, resultsCount, coordinates: userCoords });
   } catch {
@@ -187,6 +186,8 @@ async function updateKeywords(preferences: string) {
     return;
 
   try {
+    const dbConnect = (await import('@/lib/mongodb')).default;
+    const PopularKeyword = (await import('@/models/PopularKeyword')).default;
     await dbConnect();
     const words = preferences
       .toLowerCase()
@@ -237,7 +238,7 @@ function classifyError(error: unknown, streamStartedAt: number | null): string {
 
 // ── Main route handler ─────────────────────────────────────────────────────
 
-export const runtime = 'edge';
+export const dynamic = 'force-dynamic'; // Never pre-render this streaming endpoint
 export const maxDuration = 30; // Vercel Function max duration (seconds)
 
 export async function POST(request: NextRequest) {
