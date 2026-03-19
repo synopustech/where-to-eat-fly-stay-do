@@ -247,6 +247,7 @@ export default function Home() {
       const decoder = new TextDecoder();
       let buffer = '';
       let receivedRestaurants = false;
+      let summaryReceived = false;
 
       while (true) {
         const { done, value } = await reader.read();
@@ -275,9 +276,13 @@ export default function Home() {
               setLoading(false); // cards are ready; keep showing streaming indicator
             } else if (event.type === 'delta') {
               // Progressive AI summary — append each text chunk as it arrives
+              summaryReceived = true;
               setAiSummary((prev) => prev + event.text);
             } else if (event.type === 'done') {
               console.info(`[Stream] Complete in ${event.duration}ms`);
+              if (!summaryReceived) {
+                setAiSummary('_(AI summary could not be generated. Please try again.)_');
+              }
               setAiStreaming(false);
             } else if (event.type === 'error') {
               // Differentiate error sources for RCA practice
