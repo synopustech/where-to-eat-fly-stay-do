@@ -1,3 +1,5 @@
+import Link from 'next/link';
+
 /**
  * Suggested Restaurants — ISR Demo Page
  *
@@ -92,10 +94,10 @@ export default async function SuggestedRestaurantsPage({
     <div className="min-vh-100 bg-light-cream">
       <nav className="navbar navbar-expand-lg navbar-theme">
         <div className="container">
-          <a className="navbar-brand fw-bold" href="/">
+          <Link className="navbar-brand fw-bold" href="/">
             <i className="bi bi-compass me-2"></i>
             Where to Eat, Fly, Stay, &amp; Do
-          </a>
+          </Link>
         </div>
       </nav>
 
