@@ -33,6 +33,7 @@ export default function Home() {
   const [error, setError] = useState<string | null>(null);
   const [userLocation, setUserLocation] = useState<{lat: number, lng: number} | null>(null);
   const [aiSummary, setAiSummary] = useState<string>('');
+  const [aiStreaming, setAiStreaming] = useState(false);
   const [_locationLoading, setLocationLoading] = useState(false);
   const [sortBy, setSortBy] = useState<'relevance' | 'distance' | 'rating'>('relevance');
   const [originalRestaurants, setOriginalRestaurants] = useState<Restaurant[]>([]);
@@ -198,6 +199,7 @@ export default function Home() {
     setError(null);
     setRestaurants([]);
     setAiSummary('');
+      setAiStreaming(false);
     setSearchTerms(preferences);
 
     const searchData: {
@@ -269,15 +271,18 @@ export default function Home() {
               setOriginalRestaurants(event.restaurants);
               setRestaurants(sorted);
               receivedRestaurants = true;
+              setAiStreaming(true);
               setLoading(false); // cards are ready; keep showing streaming indicator
             } else if (event.type === 'delta') {
               // Progressive AI summary — append each text chunk as it arrives
               setAiSummary((prev) => prev + event.text);
             } else if (event.type === 'done') {
               console.info(`[Stream] Complete in ${event.duration}ms`);
+              setAiStreaming(false);
             } else if (event.type === 'error') {
               // Differentiate error sources for RCA practice
               console.error(`[Stream][${event.errorType}] ${event.message}`);
+              setAiStreaming(false);
               if (event.errorType === 'FUNCTION_TIMEOUT') {
                 setAiSummary((prev) =>
                   prev + '\n\n_(Summary truncated — request exceeded Edge Function time limit.)_'
@@ -288,6 +293,8 @@ export default function Home() {
                 );
               } else if (!receivedRestaurants) {
                 setError(`Search failed: ${event.message}`);
+              } else {
+                setAiSummary('_(AI summary unavailable — please try again.)_');
               }
             }
           } catch (parseErr) {
@@ -377,30 +384,37 @@ export default function Home() {
         </div>
 
         {/* AI Summary — streams in progressively from the SSE endpoint */}
-        {aiSummary && (
+        {(aiStreaming || aiSummary) && (
           <div className="card card-appetizing mb-5 fade-in">
             <div className="card-body p-4 p-md-5">
               <h2 className="card-title h3 fw-bold mb-3">
                 <i className="bi bi-robot me-2 text-primary"></i>
                 AI Recommendations Summary
               </h2>
-              <p className="lead text-muted mb-0">
-                {aiSummary}
-                {/* Blinking cursor shown while stream is still arriving */}
-                {loading && (
-                  <span
-                    style={{
-                      display: 'inline-block',
-                      width: '2px',
-                      height: '1.1em',
-                      background: 'currentColor',
-                      marginLeft: '2px',
-                      verticalAlign: 'text-bottom',
-                      animation: 'blink 1s step-end infinite',
-                    }}
-                  />
-                )}
-              </p>
+              {aiStreaming && !aiSummary ? (
+                <div className="d-flex align-items-center gap-2 text-muted">
+                  <div className="spinner-border spinner-border-sm" role="status" aria-hidden="true" />
+                  <span>Generating recommendations…</span>
+                </div>
+              ) : (
+                <p className="lead text-muted mb-0">
+                  {aiSummary}
+                  {/* Blinking cursor shown while stream is still arriving */}
+                  {aiStreaming && (
+                    <span
+                      style={{
+                        display: 'inline-block',
+                        width: '2px',
+                        height: '1.1em',
+                        background: 'currentColor',
+                        marginLeft: '2px',
+                        verticalAlign: 'text-bottom',
+                        animation: 'blink 1s step-end infinite',
+                      }}
+                    />
+                  )}
+                </p>
+              )}
             </div>
           </div>
         )}
