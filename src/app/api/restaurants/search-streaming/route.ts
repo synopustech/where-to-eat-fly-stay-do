@@ -465,8 +465,14 @@ Write 2-3 sentences summarizing what diners love, the standout dishes, and the a
       }
     });
 
+    const radiusKm = radius / 1000;
     const restaurants = (await Promise.all(restaurantPromises)).filter(
-      (r): r is Restaurant => r !== null
+      (r): r is Restaurant => {
+        if (r === null) return false;
+        // If distance was calculated and exceeds the selected radius, exclude it
+        if (r.distance !== undefined && r.distance > radiusKm) return false;
+        return true;
+      }
     );
 
     // Sort: open first, then by distance, then by rating (include closed restaurants based on radius)

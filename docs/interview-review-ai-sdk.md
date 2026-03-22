@@ -71,7 +71,7 @@ data: {"type":"done","duration":1842}
 ```
 
 **Why not use the AI SDK's built-in streaming response?**  
-We need to blend two things in one stream: structured JSON (the restaurant array) plus a streaming text response. The SDK's `toDataStreamResponse()` only handles the AI text part. Our custom `ReadableStream` lets us push the `meta` frame first, then pipe `result.textStream` chunks as `delta` frames.
+The SDK *does* support structured outputs via `Output.object()`, `Output.array()`, etc.—but that solves a different problem (making AI generate JSON). Our challenge is **architectural**: we need a two-phase response pattern where restaurant data from our database arrives *first* (the `meta` frame), then the AI summary streams in (the `delta` frames). The SDK's `streamText` and `toDataStreamResponse()` are designed for single-source (AI-only) responses. Our custom `ReadableStream` orchestrates the blend: push the restaurant array immediately so cards render, then stream summary deltas behind it.
 
 ---
 
@@ -189,6 +189,10 @@ loading=true
 **Q: Why did you use `streamText` instead of just `generateText` for the summary?**
 
 > The summary can take 3–5 seconds to generate. With `streamText`, the first words appear in ~500ms while the rest streams in. `generateText` would leave the user staring at a loading spinner for the full duration. The perceived performance difference is significant.
+
+**Q: Couldn't you use the AI SDK's structured output feature (`Output.object()`) instead of custom SSE?**
+
+> The SDK's structured outputs are for making the AI model generate JSON matching a schema — the AI itself produces the JSON. Our `meta` frame contains *our* restaurant data from the database, not from the AI. We need to send our data first so the cards appear instantly, then stream the AI text afterward. That's a two-phase orchestration pattern the SDK doesn't natively support, so we use custom SSE.
 
 **Q: How do you know if a stream failure is a Vercel timeout vs an Anthropic error?**
 
