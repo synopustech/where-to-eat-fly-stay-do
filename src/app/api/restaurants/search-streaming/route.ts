@@ -361,21 +361,11 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // First pass: build restaurant objects without per-restaurant AI calls.
+    // Keeping AI calls out of Promise.all avoids exhausting the Claude rate-limit
+    // budget before the final summary streamText call.
     const restaurantPromises = placesData.places.slice(0, 20).map(async (place) => {
       try {
-        if (
-          !place.currentOpeningHours?.weekdayDescriptions ||
-          place.businessStatus === 'CLOSED_TEMPORARILY'
-        )
-          return null;
-
-        // Local time for this restaurant
-        let localTime = new Date();
-        if (place.location) {
-          localTime = await getLocationTime(place.location.latitude, place.location.longitude);
-        }
-
-        // Very conservative open-check: if Google says CLOSED_PERMANENTLY skip it
         if (place.businessStatus === 'CLOSED_PERMANENTLY') return null;
 
         // Photo URL
@@ -385,41 +375,10 @@ export async function POST(request: NextRequest) {
           photoUrl = `https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photo_reference=${ref}&key=${process.env.GOOGLE_PLACES_API_KEY}`;
         }
 
-        // Per-restaurant AI summary via AI Gateway (generateText for non-streaming)
-        let aiRecommendation = '';
-        if (place.reviews?.length) {
-          const reviewTexts = place.reviews
-            .slice(0, 3)
-            .map((r) => r.text?.text)
-            .filter((t): t is string => !!t && t.length > 0);
-
-          if (reviewTexts.length) {
-            try {
-              const { text } = await generateText({
-                model: getModel(),
-                messages: [
-                  {
-                    role: 'user',
-                    content: `You are a restaurant critic. Based on these reviews for "${place.displayName?.text}" (${place.rating}★, ${place.formattedAddress}):
-${reviewTexts.map((t, i) => `${i + 1}. "${t.substring(0, 200)}"`).join('\n')}
-
-Write 2-3 sentences summarizing what diners love, the standout dishes, and the atmosphere. Be specific and vivid. No quotes around your response.`,
-                  },
-                ],
-                maxOutputTokens: 100,
-              });
-              aiRecommendation = text.trim().replace(/^["']|["']$/g, '');
-            } catch {
-              // fall through to rating-based fallback
-            }
-          }
-        }
-
-        if (!aiRecommendation) {
-          const r = place.rating || 0;
-          const label = r >= 4.5 ? 'highly rated' : r >= 4.0 ? 'well reviewed' : r >= 3.5 ? 'popular' : 'local';
-          aiRecommendation = `A ${label} restaurant with ${r}/5 stars.`;
-        }
+        // Rating-based recommendation (no AI call here — saves rate-limit budget for summary)
+        const r = place.rating || 0;
+        const label = r >= 4.5 ? 'highly rated' : r >= 4.0 ? 'well reviewed' : r >= 3.5 ? 'popular' : 'local';
+        const aiRecommendation = `A ${label} restaurant with ${r}/5 stars.`;
 
         const restaurant: Restaurant = {
           id: place.id,
@@ -462,8 +421,6 @@ Write 2-3 sentences summarizing what diners love, the standout dishes, and the a
         };
 
         return restaurant;
-        // suppress unused variable warning  
-        void localTime;
       } catch {
         return null;
       }
