@@ -450,7 +450,45 @@ export async function POST(request: NextRequest) {
       })
       .slice(0, 10);
 
-    // ── Step 4: Stream the AI summary using Vercel AI SDK ─────────────────
+    // ── Step 4: Enrich top restaurants with per-restaurant AI commentary ────
+    // Run sequentially (not concurrently) so we don't exhaust the Claude
+    // rate-limit budget before the final streamText summary call.
+    // Only attempt for restaurants that have Google reviews to draw from.
+    const placesById = new Map(placesData.places.map((p) => [p.id, p]));
+    for (const restaurant of rankedRestaurants) {
+      const place = placesById.get(restaurant.id);
+      if (!place?.reviews?.length) continue;
+
+      const reviewTexts = place.reviews
+        .slice(0, 3)
+        .map((r) => r.text?.text)
+        .filter((t): t is string => !!t && t.length > 0);
+
+      if (!reviewTexts.length) continue;
+
+      try {
+        const { text } = await generateText({
+          model: getModel(),
+          messages: [
+            {
+              role: 'user',
+              content: `You are a restaurant critic. Based on these reviews for "${place.displayName?.text}" (${place.rating}★, ${place.formattedAddress}):
+${reviewTexts.map((t, i) => `${i + 1}. "${t.substring(0, 200)}"`).join('\n')}
+
+Write 2-3 sentences summarizing what diners love, the standout dishes, and the atmosphere. Be specific and vivid. No quotes around your response.`,
+            },
+          ],
+          maxOutputTokens: 100,
+        });
+        if (text.trim()) {
+          restaurant.aiRecommendation = text.trim().replace(/^["']|["']$/g, '');
+        }
+      } catch {
+        // keep rating-based fallback
+      }
+    }
+
+    // ── Step 5: Stream the AI summary using Vercel AI SDK ─────────────────
     streamStartedAt = Date.now();
 
     // Encode restaurant metadata as a JSON header so the client can render
