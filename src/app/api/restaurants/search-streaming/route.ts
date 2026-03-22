@@ -314,20 +314,24 @@ export async function POST(request: NextRequest) {
     }
 
     // ── Step 2: Build Places API query ─────────────────────────────────────
-    let searchQuery = `restaurants in ${searchLocation}`;
+    // When userCoords are available, omit "in [location]" from the query so
+    // Google Places doesn't restrict results to that suburb — the locationBias
+    // circle + post-filter handle geographic scoping instead.
+    const locationSuffix = userCoords ? '' : ` in ${searchLocation}`;
+    let searchQuery = `restaurants${locationSuffix}`;
     let searchType = 'restaurant';
 
     if (preferences.trim()) {
       const clean = preferences.replace(/[^\w\s&'-]/g, '').replace(/\s+/g, ' ').trim();
       if (clean) {
         const lower = clean.toLowerCase();
-        searchQuery = `${clean} restaurants in ${searchLocation}`;
+        searchQuery = `${clean} restaurants${locationSuffix}`;
         if (lower.includes('cafe') || lower.includes('coffee shop')) {
           searchType = 'cafe';
-          searchQuery = `${clean} in ${searchLocation}`;
+          searchQuery = `${clean}${locationSuffix}`;
         } else if (lower.includes('bar') || lower.includes('pub') || lower.includes('drinks')) {
           searchType = 'bar';
-          searchQuery = `${clean} in ${searchLocation}`;
+          searchQuery = `${clean}${locationSuffix}`;
         }
       }
     }
