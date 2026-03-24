@@ -20,13 +20,41 @@ const SearchForm: React.FC<SearchFormProps> = ({ onSearch, loading, onSortChange
   const [_autocompleteReady, setAutocompleteReady] = useState(false);
   const [_googleMapsLoaded, setGoogleMapsLoaded] = useState(false);
   const [loadingError, setLoadingError] = useState(false);
-  
+  const [prefSuggestions, setPrefSuggestions] = useState<string[]>([]);
+  const [showPrefSuggestions, setShowPrefSuggestions] = useState(false);
+
   const locationInputRef = useRef<HTMLInputElement>(null);
   const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
+  const prefDropdownRef = useRef<HTMLDivElement>(null);
 
   // Fix hydration mismatch by ensuring client-side rendering
   useEffect(() => {
     setIsClient(true);
+  }, []);
+
+  // Fetch keyword suggestions from /api/suggestions on mount
+  useEffect(() => {
+    const defaultSuggestions = ['Italian', 'Sushi', 'Vegetarian', 'Pizza', 'Seafood', 'Burgers', 'Vegan', 'Chinese', 'Indian', 'Thai'];
+    fetch('/api/suggestions?type=keywords&limit=10')
+      .then(r => r.json())
+      .then(data => {
+        const keywords: string[] = (data.suggestions || [])
+          .filter((s: { type: string }) => s.type === 'keyword')
+          .map((s: { keyword: string }) => s.keyword);
+        setPrefSuggestions(keywords.length > 0 ? keywords : defaultSuggestions);
+      })
+      .catch(() => setPrefSuggestions(defaultSuggestions));
+  }, []);
+
+  // Close suggestions dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (prefDropdownRef.current && !prefDropdownRef.current.contains(e.target as Node)) {
+        setShowPrefSuggestions(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
   useEffect(() => {
@@ -281,14 +309,41 @@ const SearchForm: React.FC<SearchFormProps> = ({ onSearch, loading, onSortChange
             <i className="bi bi-heart me-2"></i>
             Food Preferences (Optional)
           </label>
-          <input
-            type="text"
-            id="preferences"
-            className="form-control"
-            placeholder="e.g., Italian, vegetarian, spicy food, romantic atmosphere..."
-            value={preferences}
-            onChange={(e) => setPreferences(e.target.value)}
-          />
+          <div className="position-relative" ref={prefDropdownRef}>
+            <input
+              type="text"
+              id="preferences"
+              className="form-control"
+              placeholder="e.g., Italian, vegetarian, spicy food, romantic atmosphere..."
+              value={preferences}
+              onChange={(e) => setPreferences(e.target.value)}
+              onFocus={() => setShowPrefSuggestions(true)}
+              autoComplete="off"
+            />
+            {showPrefSuggestions && prefSuggestions.length > 0 && (
+              <ul
+                className="list-group position-absolute w-100 shadow"
+                style={{ zIndex: 1050, top: '100%', maxHeight: '220px', overflowY: 'auto' }}
+              >
+                {prefSuggestions
+                  .filter(s => !preferences || s.toLowerCase().includes(preferences.toLowerCase()))
+                  .map((suggestion) => (
+                    <li
+                      key={suggestion}
+                      className="list-group-item list-group-item-action"
+                      style={{ cursor: 'pointer' }}
+                      onMouseDown={() => {
+                        setPreferences(suggestion);
+                        setShowPrefSuggestions(false);
+                      }}
+                    >
+                      <i className="bi bi-search me-2 text-muted" style={{ fontSize: '0.8rem' }}></i>
+                      {suggestion}
+                    </li>
+                  ))}
+              </ul>
+            )}
+          </div>
           <div className="form-text">
             Describe the type of cuisine, dietary restrictions, or atmosphere you&apos;re looking for.
           </div>

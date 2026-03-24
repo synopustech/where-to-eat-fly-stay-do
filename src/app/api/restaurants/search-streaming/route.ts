@@ -475,10 +475,10 @@ export async function POST(request: NextRequest) {
               content: `You are a restaurant critic. Based on these reviews for "${place.displayName?.text}" (${place.rating}★, ${place.formattedAddress}):
 ${reviewTexts.map((t, i) => `${i + 1}. "${t.substring(0, 200)}"`).join('\n')}
 
-Write 2-3 sentences summarizing what diners love, the standout dishes, and the atmosphere. Be specific and vivid. No quotes around your response.`,
+Write ONE sentence (max 20 words) highlighting the standout dish or feature. No quotes around your response.`,
             },
           ],
-          maxOutputTokens: 100,
+          maxOutputTokens: 60,
         });
         if (text.trim()) {
           restaurant.aiRecommendation = text.trim().replace(/^["']|["']$/g, '');
@@ -510,18 +510,12 @@ ${rankedRestaurants
   )
   .join('\n')}
 
-Write a helpful overview (4–6 sentences) that includes:
-1. The overall dining scene for this search — what cuisines and price ranges are available
-2. Your #1 pick with a specific reason why (mention a standout dish or feature)
-3. A good runner-up for a different vibe or cuisine
-4. One practical tip (best time to visit, parking, reservations, etc.)
-
-Be conversational and specific. Reference actual restaurant names.`;
+Write a helpful overview in max 40 words. Name your #1 pick and one runner-up with a specific reason for each. Be conversational and reference actual restaurant names.`;
 
     const result = streamText({
       model: getModel(),
       messages: [{ role: 'user', content: summaryPrompt }],
-      maxOutputTokens: 400,
+      maxOutputTokens: 80,
     });
 
     // Build an SSE stream:
