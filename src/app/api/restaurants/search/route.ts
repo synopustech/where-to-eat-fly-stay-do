@@ -972,11 +972,6 @@ Respond with just one sentence, no quotes or extra text.`;
         // Get real-time status information including overnight period details using restaurant's local time
         const realTimeStatus = getRealTimeStatus(details.currentOpeningHours?.weekdayDescriptions, details.currentOpeningHours?.openNow, restaurantLocalTime);
 
-        // Skip if our timezone-aware logic says it's closed
-        if (!realTimeStatus.isOpen) {
-          return null;
-        }
-
         const restaurant: Restaurant = {
           id: details.id,
           name: details.displayName?.text || 'Unknown Restaurant',
@@ -1019,15 +1014,10 @@ Respond with just one sentence, no quotes or extra text.`;
 
     const restaurants = (await Promise.all(restaurantPromises)).filter(Boolean) as Restaurant[];
 
-    // Filter to only show currently open restaurants and apply distance filtering
+    // Filter restaurants by distance
     const availableRestaurants = restaurants.filter(restaurant => {
       // Skip if restaurant data is invalid
       if (!restaurant) {
-        return false;
-      }
-      
-      // Only show currently open restaurants
-      if (!restaurant.isOpen) {
         return false;
       }
       
