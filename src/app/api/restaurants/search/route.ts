@@ -10,9 +10,13 @@ function getModel() {
   const vllm = createOpenAI({
     baseURL: (process.env.VLLM_URL || 'http://localhost:8000') + '/v1',
     apiKey: 'dummy', // vLLM doesn't require auth
-    compatibility: 'compatible', // use /v1/chat/completions, not /v1/responses
   });
-  return vllm(process.env.VLLM_MODEL || 'qwen3.5-122b');
+  return vllm.chat(process.env.VLLM_MODEL || 'qwen3.5-122b');
+}
+
+// Strip <think>...</think> reasoning blocks from Qwen3 output
+function stripThinking(text: string): string {
+  return text.replace(/<think>[\s\S]*?<\/think>/gi, '').trim();
 }
 
 // New Places API helper functions
@@ -929,7 +933,7 @@ export async function POST(request: NextRequest) {
             const recentReviews = details.reviews.slice(0, 5);
             const reviewTexts = recentReviews.map((r: Review) => r.text?.text).filter((text: string | undefined): text is string => text !== undefined && text.length > 0);
             if (reviewTexts.length > 0) {
-              const reviewPrompt = `Based on these recent Google Maps reviews for ${details.displayName?.text}, write ONE concise sentence (max 15 words) highlighting what makes this restaurant special:
+              const reviewPrompt = `/no_think Based on these recent Google Maps reviews for ${details.displayName?.text}, write ONE concise sentence (max 15 words) highlighting what makes this restaurant special:
 
 Recent reviews:
 ${reviewTexts.slice(0, 3).map((text: string, i: number) => `${i + 1}. "${text.substring(0, 150)}"`).join('\n')}
@@ -942,7 +946,7 @@ Respond with just one sentence, no quotes or extra text.`;
                 maxOutputTokens: 50,
               });
 
-              aiRecommendation = snippetText.trim().replace(/^["']|["']$/g, '');
+              aiRecommendation = stripThinking(snippetText).replace(/^["']|["']$/g, '');
                 
             } else {
               // Fallback: Create a generic recommendation based on rating and type
@@ -1033,7 +1037,7 @@ Respond with just one sentence, no quotes or extra text.`;
     });
 
     // Step 3: Use Claude AI to analyze and rank the restaurants
-    const claudePrompt = `
+    const claudePrompt = `/no_think
 You are an expert restaurant recommendation AI with deep knowledge of dining preferences, dietary restrictions, and food culture. I found ${availableRestaurants.length} restaurants in ${searchLocation}.
 
 USER PREFERENCES:
@@ -1099,7 +1103,7 @@ Important: Only return valid JSON, no additional text.
       });
       
       try {
-        const aiResponse = JSON.parse(responseText);
+        const aiResponse = JSON.parse(stripThinking(responseText));
         
         if (aiResponse.recommendations && Array.isArray(aiResponse.recommendations)) {
           // Reorder restaurants based on AI recommendations

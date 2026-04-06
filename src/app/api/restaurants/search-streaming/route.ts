@@ -15,9 +15,47 @@ function getModel() {
   const vllm = createOpenAI({
     baseURL: (process.env.VLLM_URL || 'http://localhost:8000') + '/v1',
     apiKey: 'dummy', // vLLM doesn't require auth
-    compatibility: 'compatible', // use /v1/chat/completions, not /v1/responses
   });
-  return vllm(process.env.VLLM_MODEL || 'qwen3.5-122b');
+  return vllm.chat(process.env.VLLM_MODEL || 'qwen3.5-122b');
+}
+
+// Strip <think>...</think> reasoning blocks from Qwen3 output
+function stripThinking(text: string): string {
+  return text.replace(/<think>[\s\S]*?<\/think>/gi, '').trim();
+}
+
+// Stateful filter for streaming: buffers <think> blocks and suppresses them
+function makeThinkFilter() {
+  let inThink = false;
+  let buf = '';
+  return function filter(chunk: string): string {
+    buf += chunk;
+    let out = '';
+    while (buf.length > 0) {
+      if (inThink) {
+        const end = buf.indexOf('</think>');
+        if (end === -1) {
+          // Keep buffering — closing tag not yet arrived
+          // But don't buffer more than 50KB to avoid memory issues
+          if (buf.length > 50000) buf = buf.slice(-100);
+          return out;
+        }
+        buf = buf.slice(end + 8); // skip past </think>
+        inThink = false;
+      } else {
+        const start = buf.indexOf('<think>');
+        if (start === -1) {
+          out += buf;
+          buf = '';
+        } else {
+          out += buf.slice(0, start);
+          buf = buf.slice(start + 7);
+          inThink = true;
+        }
+      }
+    }
+    return out;
+  };
 }
 
 // ── Types ──────────────────────────────────────────────────────────────────
@@ -468,7 +506,7 @@ export async function POST(request: NextRequest) {
           messages: [
             {
               role: 'user',
-              content: `You are a restaurant critic. Based on these reviews for "${place.displayName?.text}" (${place.rating}★, ${place.formattedAddress}):
+              content: `/no_think You are a restaurant critic. Based on these reviews for "${place.displayName?.text}" (${place.rating}\u2605, ${place.formattedAddress}):
 ${reviewTexts.map((t, i) => `${i + 1}. "${t.substring(0, 200)}"`).join('\n')}
 
 Write ONE sentence (max 20 words) highlighting the standout dish or feature. No quotes around your response.`,
@@ -476,8 +514,9 @@ Write ONE sentence (max 20 words) highlighting the standout dish or feature. No 
           ],
           maxOutputTokens: 60,
         });
-        if (text.trim()) {
-          restaurant.aiRecommendation = text.trim().replace(/^["']|["']$/g, '');
+        const cleaned = stripThinking(text).replace(/^["']|["']$/g, '');
+        if (cleaned) {
+          restaurant.aiRecommendation = cleaned;
         }
       } catch {
         // keep rating-based fallback
@@ -496,7 +535,7 @@ Write ONE sentence (max 20 words) highlighting the standout dish or feature. No 
       preferences,
     });
 
-    const summaryPrompt = `You are a friendly, knowledgeable local restaurant guide. The user searched for "${preferences || 'restaurants'}" in ${searchLocation}.
+    const summaryPrompt = `/no_think You are a friendly, knowledgeable local restaurant guide. The user searched for "${preferences || 'restaurants'}" in ${searchLocation}.
 
 Here are the top ${rankedRestaurants.length} results:
 ${rankedRestaurants
@@ -525,6 +564,7 @@ Write a helpful overview in max 40 words. Name your #1 pick and one runner-up wi
         // Always send restaurant data first so the UI can render cards immediately
         controller.enqueue(encoder.encode(`data: ${metaHeader}\n\n`));
 
+        const thinkFilter = makeThinkFilter();
         try {
           for await (const chunk of result.textStream) {
             // Abort if we're approaching the function timeout budget
@@ -542,9 +582,11 @@ Write a helpful overview in max 40 words. Name your #1 pick and one runner-up wi
               return;
             }
 
+            const filtered = thinkFilter(chunk);
+            if (!filtered) continue;
             controller.enqueue(
               encoder.encode(
-                `data: ${JSON.stringify({ type: 'delta', text: chunk })}\n\n`
+                `data: ${JSON.stringify({ type: 'delta', text: filtered })}\n\n`
               )
             );
           }
@@ -578,10 +620,11 @@ Write a helpful overview in max 40 words. Name your #1 pick and one runner-up wi
                 maxOutputTokens: 150,
               });
 
-              if (fallbackText.trim()) {
+              const fallbackCleaned = stripThinking(fallbackText);
+              if (fallbackCleaned) {
                 controller.enqueue(
                   encoder.encode(
-                    `data: ${JSON.stringify({ type: 'delta', text: fallbackText.trim() })}\n\n`
+                    `data: ${JSON.stringify({ type: 'delta', text: fallbackCleaned })}\n\n`
                   )
                 );
                 controller.enqueue(
