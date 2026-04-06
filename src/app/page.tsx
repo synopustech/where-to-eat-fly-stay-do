@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import RestaurantCard from './components/RestaurantCard';
 import SearchForm from './components/SearchForm';
+import ThemeToggle from './components/ThemeToggle';
 
 interface Restaurant {
   id: string;
@@ -341,9 +342,10 @@ export default function Home() {
             <i className="bi bi-compass me-2"></i>
             Where to Eat, Fly, Stay, & Do
           </Link>
-          <div className="navbar-nav d-flex flex-row justify-content-center justify-content-lg-end w-100 gap-3 gap-lg-0 ms-lg-auto">
+          <div className="navbar-nav d-flex flex-row justify-content-center justify-content-lg-end w-100 gap-3 gap-lg-0 ms-lg-auto align-items-center">
             <Link className="nav-link fw-semibold text-primary text-center" href="/">Restaurants</Link>
             <Link className="nav-link text-center" href="/flight-search">Flight Search</Link>
+            <ThemeToggle />
           </div>
         </div>
       </nav>
