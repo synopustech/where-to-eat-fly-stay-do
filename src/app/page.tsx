@@ -414,7 +414,7 @@ export default function Home() {
                   <span>Generating recommendations…</span>
                 </div>
               ) : (
-                <p className="lead text-muted mb-0">
+                <p className="lead mb-0" style={{ color: 'var(--aero-text)' }}>
                   {aiSummary}
                   {/* Blinking cursor shown while stream is still arriving */}
                   {aiStreaming && (
@@ -484,9 +484,9 @@ export default function Home() {
       {/* Footer */}
       <footer className="border-top mt-5 py-4">
         <div className="container text-center">
-          <p className="text-muted mb-0">
+          <p className="mb-0" style={{ color: 'var(--aero-text-secondary)' }}>
             <i className="bi bi-robot me-2"></i>
-            Powered by Local AI (Qwen) and Google Places API
+            Powered by Qwen 3.5 and Google Places API
           </p>
         </div>
       </footer>

@@ -323,7 +323,7 @@ const SearchForm: React.FC<SearchFormProps> = ({ onSearch, loading, onSortChange
             {showPrefSuggestions && prefSuggestions.length > 0 && (
               <ul
                 className="list-group position-absolute w-100 shadow"
-                style={{ zIndex: 1050, top: '100%', maxHeight: '220px', overflowY: 'auto' }}
+                style={{ zIndex: 1050, top: '100%', maxHeight: '220px', overflowY: 'auto', background: 'var(--aero-surface-solid)', border: '1px solid var(--aero-glass-border)' }}
               >
                 {prefSuggestions
                   .filter(s => !preferences || s.toLowerCase().includes(preferences.toLowerCase()))

@@ -29,7 +29,7 @@ function getModel() {
     apiKey: 'dummy', // vLLM doesn't require auth
     fetch: vllmFetch,
   });
-  return vllm.chat(process.env.VLLM_MODEL || 'qwen3.5-122b');
+  return vllm.chat(process.env.VLLM_MODEL || 'qwen3.5');
 }
 
 // Strip thinking content from Qwen3 output.

@@ -64,7 +64,7 @@
 
   --aero-text: #dceefa;
   --aero-text-secondary: #7ba8c9;
-  --aero-text-muted: #436d8a;
+  --aero-text-muted: #8bbdd9;
 
   --aero-input-bg: rgba(12, 26, 51, 0.72);
   --aero-input-border: rgba(76, 201, 240, 0.18);
@@ -574,7 +574,7 @@ footer *, .footer * { color: var(--aero-text-muted) !important; }
   color: var(--aero-text) !important;
 }
 .list-group-item {
-  background-color: var(--aero-surface) !important;
+  background-color: var(--aero-surface-solid) !important;
   color: var(--aero-text) !important;
   border-color: var(--aero-divider) !important;
 }
