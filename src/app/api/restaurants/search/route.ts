@@ -10,6 +10,7 @@ function getModel() {
   const vllm = createOpenAI({
     baseURL: (process.env.VLLM_URL || 'http://localhost:8000') + '/v1',
     apiKey: 'dummy', // vLLM doesn't require auth
+    compatibility: 'compatible', // use /v1/chat/completions, not /v1/responses
   });
   return vllm(process.env.VLLM_MODEL || 'qwen3.5-122b');
 }
