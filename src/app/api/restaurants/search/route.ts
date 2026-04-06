@@ -5,18 +5,39 @@ import dbConnect from '@/lib/mongodb';
 import SearchHistory from '@/models/SearchHistory';
 import PopularKeyword from '@/models/PopularKeyword';
 
+// Custom fetch that injects chat_template_kwargs to disable Qwen3 thinking mode
+async function vllmFetch(input: RequestInfo | URL, init?: RequestInit): Promise<Response> {
+  if (init?.body && typeof init.body === 'string') {
+    try {
+      const body = JSON.parse(init.body);
+      body.chat_template_kwargs = { enable_thinking: false };
+      init = { ...init, body: JSON.stringify(body) };
+    } catch { /* not JSON, pass through */ }
+  }
+  return fetch(input, init);
+}
+
 // Connect to local vLLM server via OpenAI-compatible API
 function getModel() {
   const vllm = createOpenAI({
     baseURL: (process.env.VLLM_URL || 'http://localhost:8000') + '/v1',
     apiKey: 'dummy', // vLLM doesn't require auth
+    fetch: vllmFetch,
   });
   return vllm.chat(process.env.VLLM_MODEL || 'qwen3.5-122b');
 }
 
-// Strip <think>...</think> reasoning blocks from Qwen3 output
+// Strip thinking content from Qwen3 output.
+// This model outputs: "Thinking Process:\n...\n</think>\n\nActual answer"
 function stripThinking(text: string): string {
-  return text.replace(/<think>[\s\S]*?<\/think>/gi, '').trim();
+  // Standard <think>...</think> format
+  let result = text.replace(/<think>[\s\S]*?<\/think>/gi, '').trim();
+  // This model's format: everything before </think> is reasoning
+  const thinkEnd = result.indexOf('</think>');
+  if (thinkEnd !== -1) {
+    result = result.slice(thinkEnd + 8).trim();
+  }
+  return result;
 }
 
 // New Places API helper functions
@@ -933,7 +954,7 @@ export async function POST(request: NextRequest) {
             const recentReviews = details.reviews.slice(0, 5);
             const reviewTexts = recentReviews.map((r: Review) => r.text?.text).filter((text: string | undefined): text is string => text !== undefined && text.length > 0);
             if (reviewTexts.length > 0) {
-              const reviewPrompt = `/no_think Based on these recent Google Maps reviews for ${details.displayName?.text}, write ONE concise sentence (max 15 words) highlighting what makes this restaurant special:
+              const reviewPrompt = `Based on these recent Google Maps reviews for ${details.displayName?.text}, write ONE concise sentence (max 15 words) highlighting what makes this restaurant special:
 
 Recent reviews:
 ${reviewTexts.slice(0, 3).map((text: string, i: number) => `${i + 1}. "${text.substring(0, 150)}"`).join('\n')}
@@ -1037,7 +1058,7 @@ Respond with just one sentence, no quotes or extra text.`;
     });
 
     // Step 3: Use Claude AI to analyze and rank the restaurants
-    const claudePrompt = `/no_think
+    const claudePrompt = `
 You are an expert restaurant recommendation AI with deep knowledge of dining preferences, dietary restrictions, and food culture. I found ${availableRestaurants.length} restaurants in ${searchLocation}.
 
 USER PREFERENCES:

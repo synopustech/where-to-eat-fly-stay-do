@@ -10,51 +10,79 @@ import { streamText, generateText } from 'ai';
 import { createOpenAI } from '@ai-sdk/openai';
 import { NextRequest } from 'next/server';
 
+// Custom fetch that injects chat_template_kwargs to disable Qwen3 thinking mode
+async function vllmFetch(input: RequestInfo | URL, init?: RequestInit): Promise<Response> {
+  if (init?.body && typeof init.body === 'string') {
+    try {
+      const body = JSON.parse(init.body);
+      body.chat_template_kwargs = { enable_thinking: false };
+      init = { ...init, body: JSON.stringify(body) };
+    } catch { /* not JSON, pass through */ }
+  }
+  return fetch(input, init);
+}
+
 // Connect to local vLLM server via OpenAI-compatible API
 function getModel() {
   const vllm = createOpenAI({
     baseURL: (process.env.VLLM_URL || 'http://localhost:8000') + '/v1',
     apiKey: 'dummy', // vLLM doesn't require auth
+    fetch: vllmFetch,
   });
   return vllm.chat(process.env.VLLM_MODEL || 'qwen3.5-122b');
 }
 
-// Strip <think>...</think> reasoning blocks from Qwen3 output
+// Strip thinking content from Qwen3 output.
+// This model outputs: "Thinking Process:\n...\n</think>\n\nActual answer"
+// (no opening <think> tag, but </think> closes the reasoning block)
 function stripThinking(text: string): string {
-  return text.replace(/<think>[\s\S]*?<\/think>/gi, '').trim();
+  // Standard <think>...</think> format
+  let result = text.replace(/<think>[\s\S]*?<\/think>/gi, '').trim();
+  // This model's format: everything before </think> is reasoning
+  const thinkEnd = result.indexOf('</think>');
+  if (thinkEnd !== -1) {
+    result = result.slice(thinkEnd + 8).trim();
+  }
+  return result;
 }
 
-// Stateful filter for streaming: buffers <think> blocks and suppresses them
+// Stateful stream filter: detects thinking blocks and strips them;
+// if no thinking present, passes chunks through immediately
 function makeThinkFilter() {
-  let inThink = false;
+  // 'detecting': watching first ~100 chars to see if thinking is present
+  // 'thinking':  inside a thinking block, buffering until </think>
+  // 'passthrough': thinking done (or never present), emit all chunks
+  let mode: 'detecting' | 'thinking' | 'passthrough' = 'detecting';
   let buf = '';
   return function filter(chunk: string): string {
+    if (mode === 'passthrough') return chunk;
     buf += chunk;
-    let out = '';
-    while (buf.length > 0) {
-      if (inThink) {
-        const end = buf.indexOf('</think>');
-        if (end === -1) {
-          // Keep buffering — closing tag not yet arrived
-          // But don't buffer more than 50KB to avoid memory issues
-          if (buf.length > 50000) buf = buf.slice(-100);
-          return out;
-        }
-        buf = buf.slice(end + 8); // skip past </think>
-        inThink = false;
+    if (mode === 'detecting') {
+      // If text clearly starts with a thinking marker, switch to thinking mode
+      if (buf.startsWith('<think>') || buf.startsWith('Thinking Process:')) {
+        mode = 'thinking';
+      } else if (buf.length >= 50) {
+        // No thinking detected \u2014 pass everything through
+        mode = 'passthrough';
+        const out = buf;
+        buf = '';
+        return out;
       } else {
-        const start = buf.indexOf('<think>');
-        if (start === -1) {
-          out += buf;
-          buf = '';
-        } else {
-          out += buf.slice(0, start);
-          buf = buf.slice(start + 7);
-          inThink = true;
-        }
+        // Not enough chars yet to decide \u2014 keep buffering silently
+        return '';
       }
     }
-    return out;
+    if (mode === 'thinking') {
+      const endIdx = buf.indexOf('</think>');
+      if (endIdx !== -1) {
+        mode = 'passthrough';
+        const after = buf.slice(endIdx + 8).trimStart();
+        buf = '';
+        return after;
+      }
+      return ''; // Still buffering thinking block
+    }
+    return '';
   };
 }
 
@@ -506,7 +534,7 @@ export async function POST(request: NextRequest) {
           messages: [
             {
               role: 'user',
-              content: `/no_think You are a restaurant critic. Based on these reviews for "${place.displayName?.text}" (${place.rating}\u2605, ${place.formattedAddress}):
+              content: `You are a restaurant critic. Based on these reviews for "${place.displayName?.text}" (${place.rating}\u2605, ${place.formattedAddress}):
 ${reviewTexts.map((t, i) => `${i + 1}. "${t.substring(0, 200)}"`).join('\n')}
 
 Write ONE sentence (max 20 words) highlighting the standout dish or feature. No quotes around your response.`,
@@ -535,7 +563,7 @@ Write ONE sentence (max 20 words) highlighting the standout dish or feature. No 
       preferences,
     });
 
-    const summaryPrompt = `/no_think You are a friendly, knowledgeable local restaurant guide. The user searched for "${preferences || 'restaurants'}" in ${searchLocation}.
+    const summaryPrompt = `You are a friendly, knowledgeable local restaurant guide. The user searched for "${preferences || 'restaurants'}" in ${searchLocation}.
 
 Here are the top ${rankedRestaurants.length} results:
 ${rankedRestaurants
