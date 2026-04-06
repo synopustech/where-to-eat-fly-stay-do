@@ -1,17 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { generateText, gateway } from 'ai';
-import { createAnthropic } from '@ai-sdk/anthropic';
+import { generateText } from 'ai';
+import { createOpenAI } from '@ai-sdk/openai';
 import dbConnect from '@/lib/mongodb';
 import SearchHistory from '@/models/SearchHistory';
 import PopularKeyword from '@/models/PopularKeyword';
 
-// Use Vercel AI Gateway when AI_GATEWAY_API_KEY is set; otherwise fall back to direct Anthropic
+// Connect to local vLLM server via OpenAI-compatible API
 function getModel() {
-  if (process.env.AI_GATEWAY_API_KEY) {
-    return gateway('anthropic/claude-haiku-4-5');
-  }
-  const anthropic = createAnthropic({ apiKey: process.env.CLAUDE_API_KEY });
-  return anthropic('claude-haiku-4-5-20251001');
+  const vllm = createOpenAI({
+    baseURL: (process.env.VLLM_URL || 'http://localhost:8000') + '/v1',
+    apiKey: 'dummy', // vLLM doesn't require auth
+  });
+  return vllm(process.env.VLLM_MODEL || 'qwen3.5-122b');
 }
 
 // New Places API helper functions
@@ -732,10 +732,10 @@ export async function POST(request: NextRequest) {
     }
 
     // Check for required API keys
-    if (!process.env.CLAUDE_API_KEY) {
-      console.error('Claude API key not found');
+    if (!process.env.VLLM_URL) {
+      console.error('VLLM_URL not found');
       return NextResponse.json(
-        { error: 'Claude API key not configured' },
+        { error: 'VLLM_URL not configured' },
         { status: 500 }
       );
     }

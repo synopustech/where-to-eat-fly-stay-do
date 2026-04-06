@@ -9,7 +9,7 @@ const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: "Where to Eat - AI-Powered Restaurant Finder",
-  description: "Find the best restaurants near you with AI-powered recommendations using Claude and Google Places API",
+  description: "Find the best restaurants near you with AI-powered recommendations using local LLM and Google Places API",
 };
 
 const themeInitScript = `

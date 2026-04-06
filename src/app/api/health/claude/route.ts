@@ -1,44 +1,36 @@
 import { NextResponse } from 'next/server';
-import Anthropic from '@anthropic-ai/sdk';
 
 export async function GET() {
   try {
-    const apiKey = process.env.CLAUDE_API_KEY;
+    const vllmUrl = process.env.VLLM_URL;
     
-    if (!apiKey) {
+    if (!vllmUrl) {
       return NextResponse.json(
-        { error: 'Claude API key not configured' },
+        { error: 'VLLM_URL not configured' },
         { status: 400 }
       );
     }
 
-    // Test the Claude API with a simple request
-    const anthropic = new Anthropic({
-      apiKey: apiKey,
-    });
+    // Test the vLLM server by listing available models
+    const response = await fetch(`${vllmUrl}/v1/models`);
+    
+    if (!response.ok) {
+      throw new Error(`vLLM responded with ${response.status}`);
+    }
 
-    const message = await anthropic.messages.create({
-      model: 'claude-3-haiku-20240307',
-      max_tokens: 10,
-      messages: [
-        {
-          role: 'user',
-          content: 'Say "OK" if you can respond.'
-        }
-      ]
-    });
+    const data = await response.json();
 
     return NextResponse.json({ 
       status: 'connected', 
-      message: 'Claude API is working',
-      response: message.content[0]
+      message: 'Local LLM (vLLM) is working',
+      models: data.data?.map((m: { id: string }) => m.id) ?? [],
     });
 
   } catch (error) {
-    console.error('Claude API health check failed:', error);
+    console.error('vLLM health check failed:', error);
     return NextResponse.json(
       { 
-        error: 'Claude API connection failed',
+        error: 'vLLM connection failed',
         details: error instanceof Error ? error.message : 'Unknown error'
       },
       { status: 500 }

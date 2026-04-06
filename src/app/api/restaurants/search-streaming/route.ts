@@ -1,27 +1,22 @@
 /**
  * Streaming Restaurant Search API
  *
- * Vercel Intensive:
- * - Uses Vercel AI Gateway (model strings like 'anthropic/claude-haiku-4-5')
- * - Streams the AI summary progressively via Server-Sent Events (SSE)
- * - Distinguishes PROVIDER_TIMEOUT vs FUNCTION_TIMEOUT vs STREAM_ERROR
- *
- * Interview talking point:
- * "I route all AI calls through Vercel AI Gateway for unified billing,
- *  automatic retries, and observability — with a single AI_GATEWAY_API_KEY."
+ * Uses a local vLLM server (OpenAI-compatible) for AI recommendations.
+ * Streams the AI summary progressively via Server-Sent Events (SSE).
+ * Distinguishes PROVIDER_TIMEOUT vs FUNCTION_TIMEOUT vs STREAM_ERROR.
  */
 
-import { streamText, generateText, gateway } from 'ai';
-import { createAnthropic } from '@ai-sdk/anthropic';
+import { streamText, generateText } from 'ai';
+import { createOpenAI } from '@ai-sdk/openai';
 import { NextRequest } from 'next/server';
 
-// Use Vercel AI Gateway when AI_GATEWAY_API_KEY is set; otherwise fall back to direct Anthropic
+// Connect to local vLLM server via OpenAI-compatible API
 function getModel() {
-  if (process.env.AI_GATEWAY_API_KEY) {
-    return gateway('anthropic/claude-haiku-4-5');
-  }
-  const anthropic = createAnthropic({ apiKey: process.env.CLAUDE_API_KEY });
-  return anthropic('claude-haiku-4-5-20251001');
+  const vllm = createOpenAI({
+    baseURL: (process.env.VLLM_URL || 'http://localhost:8000') + '/v1',
+    apiKey: 'dummy', // vLLM doesn't require auth
+  });
+  return vllm(process.env.VLLM_MODEL || 'qwen3.5-122b');
 }
 
 // ── Types ──────────────────────────────────────────────────────────────────
@@ -243,7 +238,7 @@ async function updateKeywords(preferences: string) {
  *  | Type              | Meaning                                             |
  *  |-------------------|-----------------------------------------------------|
  *  | FUNCTION_TIMEOUT  | Vercel Edge Function hit its 30 s wall-clock limit  |
- *  | PROVIDER_TIMEOUT  | Anthropic API took too long (upstream timeout)      |
+ *  | PROVIDER_TIMEOUT  | LLM API took too long (upstream timeout)             |
  *  | RATE_LIMIT        | 429 from Anthropic or Google APIs                   |
  *  | AUTH_ERROR        | Bad/missing API key                                 |
  *  | STREAM_ERROR      | Generic mid-stream failure after streaming began    |
@@ -279,8 +274,8 @@ export async function POST(request: NextRequest) {
     if (!location) {
       return errorJson('Location is required', 400);
     }
-    if (!process.env.AI_GATEWAY_API_KEY && !process.env.CLAUDE_API_KEY) {
-      return errorJson('AI Gateway API key not configured', 500);
+    if (!process.env.VLLM_URL) {
+      return errorJson('VLLM_URL not configured', 500);
     }
     if (!process.env.GOOGLE_PLACES_API_KEY) {
       return errorJson('Google Places API key not configured', 500);

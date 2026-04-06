@@ -249,7 +249,7 @@ export default function Home() {
       //
       // This teaches the difference between:
       //   FUNCTION_TIMEOUT  = Vercel Edge hit 30 s wall-clock limit
-      //   PROVIDER_TIMEOUT  = Anthropic upstream took too long
+      //   PROVIDER_TIMEOUT  = LLM upstream took too long
       //   STREAM_ERROR      = mid-stream failure after streaming began
 
       const reader = response.body.getReader();
@@ -486,7 +486,7 @@ export default function Home() {
         <div className="container text-center">
           <p className="text-muted mb-0">
             <i className="bi bi-robot me-2"></i>
-            Powered by Claude AI and Google Places API
+            Powered by Local AI (Qwen) and Google Places API
           </p>
         </div>
       </footer>

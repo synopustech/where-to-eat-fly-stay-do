@@ -17,8 +17,7 @@
     "npm": ">=8.0.0"
   },
   "dependencies": {
-    "@ai-sdk/anthropic": "^3.0.58",
-    "@anthropic-ai/sdk": "^0.57.0",
+    "@ai-sdk/openai": "^3.0.50",
     "@googlemaps/google-maps-services-js": "^3.4.2",
     "@googlemaps/js-api-loader": "^1.16.10",
     "@types/google.maps": "^3.58.1",
