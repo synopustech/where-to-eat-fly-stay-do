@@ -334,17 +334,24 @@ export default function Home() {
   };
 
   return (
-    <div className="min-vh-100 bg-light-cream">
+    <div className="min-vh-100 bg-light-cream mac-app-shell">
       {/* Navigation */}
-      <nav className="navbar navbar-expand-lg navbar-theme">
-        <div className="container">
-          <Link className="navbar-brand fw-bold d-block w-100 text-center text-lg-start mb-2 mb-lg-0" href="/">
+      <nav className="navbar navbar-expand-lg navbar-theme mac-toolbar">
+        <div className="container d-flex flex-column flex-lg-row align-items-center gap-3 gap-lg-2">
+          <div className="mac-traffic d-none d-lg-flex" aria-hidden="true">
+            <span className="traffic-dot traffic-red"></span>
+            <span className="traffic-dot traffic-yellow"></span>
+            <span className="traffic-dot traffic-green"></span>
+          </div>
+
+          <Link className="navbar-brand fw-bold d-block text-center text-lg-start mb-0" href="/">
             <i className="bi bi-compass me-2"></i>
             Where to Eat, Fly, Stay, & Do
           </Link>
-          <div className="navbar-nav d-flex flex-row justify-content-center justify-content-lg-end w-100 gap-3 gap-lg-0 ms-lg-auto align-items-center">
-            <Link className="nav-link fw-semibold text-primary text-center" href="/">Restaurants</Link>
-            <Link className="nav-link text-center" href="/flight-search">Flight Search</Link>
+
+          <div className="navbar-nav d-flex flex-row justify-content-center justify-content-lg-end w-100 gap-2 ms-lg-auto align-items-center mac-segment">
+            <Link className="nav-link fw-semibold text-primary text-center mac-segment-item" href="/">Restaurants</Link>
+            <Link className="nav-link text-center mac-segment-item" href="/flight-search">Flight Search</Link>
             <ThemeToggle />
           </div>
         </div>
@@ -380,7 +387,7 @@ export default function Home() {
       {/* Main Content */}
       <div className="container py-5">
         {/* Search Form */}
-        <div className="card card-appetizing search-form-container mb-5 fade-in">
+        <div className="card card-appetizing search-form-container mac-window-shell mb-5 fade-in">
           <div className="card-body p-4 p-md-5">
             {/* Location Button */}
             <div className="mb-4">
@@ -402,7 +409,7 @@ export default function Home() {
 
         {/* AI Summary — streams in progressively from the SSE endpoint */}
         {(aiStreaming || aiSummary) && (
-          <div className="card card-appetizing mb-5 fade-in">
+          <div className="card card-appetizing mac-window-shell mb-5 fade-in">
             <div className="card-body p-4 p-md-5">
               <h2 className="card-title h3 fw-bold mb-3">
                 <i className="bi bi-robot me-2 text-primary"></i>

@@ -2,6 +2,9 @@
 const path = require('path');
 
 const nextConfig = {
+  // Standalone output for Docker deployments
+  output: 'standalone',
+  
   // Configure external image domains
   images: {
     remotePatterns: [
